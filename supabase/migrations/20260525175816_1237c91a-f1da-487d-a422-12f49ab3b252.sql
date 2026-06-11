@@ -1,0 +1,2 @@
+ALTER TABLE public.metas_usuario DROP CONSTRAINT metas_usuario_objetivo_ativo_check;
+ALTER TABLE public.metas_usuario ADD CONSTRAINT metas_usuario_objetivo_ativo_check CHECK (objetivo_ativo = ANY (ARRAY['perda'::text, 'ganho'::text, 'reeducacao'::text]));
