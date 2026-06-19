@@ -21,6 +21,7 @@ import { Route as AppMethodRouteImport } from './routes/app.method'
 import { Route as AppInstrutorRouteImport } from './routes/app.instrutor'
 import { Route as AppAlimentacaoRouteImport } from './routes/app.alimentacao'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
+import { Route as AppInstrutorExerciciosRouteImport } from './routes/app.instrutor.exercicios'
 import { Route as AppInstrutorAlunoIdRouteImport } from './routes/app.instrutor.$alunoId'
 import { Route as AppGuiasChaveRouteImport } from './routes/app.guias.$chave'
 import { Route as AppAdminUserIdRouteImport } from './routes/app.admin.$userId'
@@ -85,6 +86,11 @@ const AppAdminRoute = AppAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInstrutorExerciciosRoute = AppInstrutorExerciciosRouteImport.update({
+  id: '/exercicios',
+  path: '/exercicios',
+  getParentRoute: () => AppInstrutorRoute,
+} as any)
 const AppInstrutorAlunoIdRoute = AppInstrutorAlunoIdRouteImport.update({
   id: '/$alunoId',
   path: '/$alunoId',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/$userId': typeof AppAdminUserIdRoute
   '/app/guias/$chave': typeof AppGuiasChaveRoute
   '/app/instrutor/$alunoId': typeof AppInstrutorAlunoIdRoute
+  '/app/instrutor/exercicios': typeof AppInstrutorExerciciosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/app/admin/$userId': typeof AppAdminUserIdRoute
   '/app/guias/$chave': typeof AppGuiasChaveRoute
   '/app/instrutor/$alunoId': typeof AppInstrutorAlunoIdRoute
+  '/app/instrutor/exercicios': typeof AppInstrutorExerciciosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/app/admin/$userId': typeof AppAdminUserIdRoute
   '/app/guias/$chave': typeof AppGuiasChaveRoute
   '/app/instrutor/$alunoId': typeof AppInstrutorAlunoIdRoute
+  '/app/instrutor/exercicios': typeof AppInstrutorExerciciosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/app/admin/$userId'
     | '/app/guias/$chave'
     | '/app/instrutor/$alunoId'
+    | '/app/instrutor/exercicios'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/app/admin/$userId'
     | '/app/guias/$chave'
     | '/app/instrutor/$alunoId'
+    | '/app/instrutor/exercicios'
   id:
     | '__root__'
     | '/'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/app/admin/$userId'
     | '/app/guias/$chave'
     | '/app/instrutor/$alunoId'
+    | '/app/instrutor/exercicios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -298,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/instrutor/exercicios': {
+      id: '/app/instrutor/exercicios'
+      path: '/exercicios'
+      fullPath: '/app/instrutor/exercicios'
+      preLoaderRoute: typeof AppInstrutorExerciciosRouteImport
+      parentRoute: typeof AppInstrutorRoute
+    }
     '/app/instrutor/$alunoId': {
       id: '/app/instrutor/$alunoId'
       path: '/$alunoId'
@@ -336,10 +355,12 @@ const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
 
 interface AppInstrutorRouteChildren {
   AppInstrutorAlunoIdRoute: typeof AppInstrutorAlunoIdRoute
+  AppInstrutorExerciciosRoute: typeof AppInstrutorExerciciosRoute
 }
 
 const AppInstrutorRouteChildren: AppInstrutorRouteChildren = {
   AppInstrutorAlunoIdRoute: AppInstrutorAlunoIdRoute,
+  AppInstrutorExerciciosRoute: AppInstrutorExerciciosRoute,
 }
 
 const AppInstrutorRouteWithChildren = AppInstrutorRoute._addFileChildren(

@@ -37,7 +37,21 @@ export const Route = createFileRoute("/app/instrutor")({
 });
 
 function InstrutorLayout() {
+  const { user } = useAuth();
+  const userId = user?.id ?? "";
+  const navigate = useNavigate();
+  const { data: perfil, isSuccess } = useQuery({ ...perfilQuery(userId), enabled: !!userId });
   const childMatches = useChildMatches();
+
+  const isProfissional =
+    perfil?.papel === "instrutor" || perfil?.papel === "nutricionista" || perfil?.papel === "admin";
+
+  useEffect(() => {
+    if (!isSuccess) return;
+    if (!isProfissional) navigate({ to: "/app" });
+  }, [isSuccess, isProfissional, navigate]);
+
+  if (!isSuccess || !isProfissional) return null;
   if (childMatches.length > 0) return <Outlet />;
   return <InstrutorPage />;
 }
@@ -141,6 +155,26 @@ function InstrutorPage() {
           <h1 className="text-2xl">Meus Alunos</h1>
         </div>
       </header>
+
+      <Card className="glass">
+        <CardContent className="py-4 px-5 flex items-center gap-3">
+          <div className="h-9 w-9 shrink-0 rounded-xl bg-gradient-ember grid place-items-center shadow-ember">
+            <Dumbbell className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium">Banco de exercícios</div>
+            <div className="text-[11px] text-muted-foreground">
+              Criar e editar exercícios disponíveis nos planos
+            </div>
+          </div>
+          <Link
+            to="/app/instrutor/exercicios"
+            className="shrink-0 flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            Abrir <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </CardContent>
+      </Card>
 
       <Card className="glass">
         <CardHeader className="pb-3">

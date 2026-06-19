@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import {
+  perfilQuery,
   planosTreinoAlunoQuery,
   planosAlimentaresAlunoQuery,
   planoExerciciosQuery,
@@ -424,16 +425,29 @@ function PlanoAlimentarView({ plano, alunoId }: { plano: PlanoAlimentarRow; alun
 function MeuPlanoPage() {
   const { user } = useAuth();
   const userId = user?.id ?? "";
+  const navigate = useNavigate();
+
+  const { data: perfil, isSuccess: perfilReady } = useQuery({
+    ...perfilQuery(userId),
+    enabled: !!userId,
+  });
+
+  useEffect(() => {
+    if (!perfilReady) return;
+    if (perfil?.papel !== "aluno") navigate({ to: "/app" });
+  }, [perfilReady, perfil?.papel, navigate]);
 
   const { data: planosTreino = [], isLoading: loadingTreino } = useQuery({
     ...planosTreinoAlunoQuery(userId),
-    enabled: !!userId,
+    enabled: !!userId && perfilReady && perfil?.papel === "aluno",
   });
 
   const { data: planosAlimentares = [], isLoading: loadingAlimentar } = useQuery({
     ...planosAlimentaresAlunoQuery(userId),
-    enabled: !!userId,
+    enabled: !!userId && perfilReady && perfil?.papel === "aluno",
   });
+
+  if (!perfilReady || perfil?.papel !== "aluno") return null;
 
   return (
     <main className="mx-auto max-w-md px-5 pt-8 pb-8">

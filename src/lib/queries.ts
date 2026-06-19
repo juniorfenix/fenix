@@ -657,15 +657,27 @@ export const planoRefeicoesQuery = (planoId: string) =>
     },
   });
 
+export type ExercicioRow = {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  equipamento: string;
+  gif_url: string | null;
+  grupo_muscular: string | null;
+  nivel: string;
+  tipo_midia: string;
+  video_url: string | null;
+};
+
 export const exerciciosQuery = queryOptions({
   queryKey: ["exercicios"],
-  queryFn: async () => {
+  queryFn: async (): Promise<ExercicioRow[]> => {
     const { data, error } = await supabase
       .from("exercicios")
-      .select("id,nome,grupo_muscular,nivel,equipamento,gif_url,video_url,tipo_midia")
+      .select("id,nome,grupo_muscular,nivel,equipamento,gif_url,video_url,tipo_midia,descricao")
       .order("nome", { ascending: true });
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as ExercicioRow[];
   },
   staleTime: 10 * 60 * 1000,
 });

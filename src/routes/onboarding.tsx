@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { z } from "zod";
 import { calculateDailyCalories, todayISO, type ActivityLevel } from "@/lib/calories";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -82,6 +83,29 @@ const EVITAR = [
   "Nenhum",
 ];
 
+const dadosSchema = z.object({
+  current_weight: z.coerce
+    .number({ invalid_type_error: "Informe o peso" })
+    .min(20, "Mínimo 20 kg")
+    .max(300, "Máximo 300 kg"),
+  goal_weight: z.coerce
+    .number({ invalid_type_error: "Informe o peso desejado" })
+    .min(20, "Mínimo 20 kg")
+    .max(300, "Máximo 300 kg"),
+  height: z.coerce
+    .number({ invalid_type_error: "Informe a altura" })
+    .int("Use números inteiros")
+    .min(100, "Mínimo 100 cm")
+    .max(250, "Máximo 250 cm"),
+  age: z.coerce
+    .number({ invalid_type_error: "Informe a idade" })
+    .int("Use números inteiros")
+    .min(5, "Mínimo 5 anos")
+    .max(120, "Máximo 120 anos"),
+});
+
+type DadosErrors = Partial<Record<keyof typeof dadosSchema.shape, string>>;
+
 const ENCOURAGE: Record<number, string> = {
   0: "Perfeito, estamos moldando sua fênix.",
   1: "Excelente. Cada detalhe importa.",
@@ -124,6 +148,15 @@ function Onboarding() {
   });
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
 
+  const [dadosErrors, setDadosErrors] = useState<DadosErrors>({});
+  const validateDados = (field: keyof DadosErrors, value: string) => {
+    const result = dadosSchema.shape[field].safeParse(value);
+    setDadosErrors((prev) => ({
+      ...prev,
+      [field]: result.success ? undefined : result.error.errors[0].message,
+    }));
+  };
+
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
 
@@ -149,9 +182,10 @@ function Onboarding() {
   const canNext = (() => {
     switch (current) {
       case "dados":
-        return !!(form.current_weight && form.height && form.age);
+        return !!(form.current_weight && form.height && form.age) &&
+          !dadosErrors.current_weight && !dadosErrors.height && !dadosErrors.age;
       case "objetivo_peso":
-        return !!form.goal_weight;
+        return !!form.goal_weight && !dadosErrors.goal_weight;
       case "atividade":
         return !!form.activity;
       case "objetivo_fenix":
@@ -203,16 +237,16 @@ function Onboarding() {
       toast.error("Preencha todos os campos com valores válidos.");
       return;
     }
-    if (w < 25 || w > 350 || gw < 25 || gw > 350) {
-      toast.error("Peso fora de um intervalo razoável (25–350 kg).");
+    if (w < 20 || w > 300 || gw < 20 || gw > 300) {
+      toast.error("Peso fora do intervalo permitido (20–300 kg).");
       return;
     }
     if (h < 100 || h > 250) {
-      toast.error("Altura fora de um intervalo razoável (100–250 cm).");
+      toast.error("Altura fora do intervalo permitido (100–250 cm).");
       return;
     }
-    if (a < 12 || a > 100) {
-      toast.error("Idade fora de um intervalo razoável (12–100 anos).");
+    if (a < 5 || a > 120) {
+      toast.error("Idade fora do intervalo permitido (5–120 anos).");
       return;
     }
     setBusy(true);
@@ -361,6 +395,8 @@ function Onboarding() {
               form={form}
               set={set}
               onEnter={canNext ? goNext : undefined}
+              dadosErrors={dadosErrors}
+              validateDados={validateDados}
             />
           )}
         </div>
@@ -406,11 +442,15 @@ function StepScreen({
   form,
   set,
   onEnter,
+  dadosErrors,
+  validateDados,
 }: {
   step: string;
   form: Form;
   set: <K extends keyof Form>(k: K, v: Form[K]) => void;
   onEnter?: () => void;
+  dadosErrors?: DadosErrors;
+  validateDados?: (field: keyof DadosErrors, value: string) => void;
 }) {
   if (step === "dados") {
     return (
@@ -422,9 +462,30 @@ function StepScreen({
           Esses dados calibram tudo: dieta, treino e meta calórica.
         </p>
         <div className="mt-8 grid grid-cols-2 gap-3">
-          <BigField label="Peso (kg)" value={form.current_weight} onChange={(v) => set("current_weight", v)} type="number" />
-          <BigField label="Altura (cm)" value={form.height} onChange={(v) => set("height", v)} type="number" />
-          <BigField label="Idade" value={form.age} onChange={(v) => set("age", v)} type="number" />
+          <BigField
+            label="Peso (kg)"
+            value={form.current_weight}
+            onChange={(v) => { set("current_weight", v); validateDados?.("current_weight", v); }}
+            type="number"
+            max={300}
+            error={dadosErrors?.current_weight}
+          />
+          <BigField
+            label="Altura (cm)"
+            value={form.height}
+            onChange={(v) => { set("height", v); validateDados?.("height", v); }}
+            type="number"
+            max={250}
+            error={dadosErrors?.height}
+          />
+          <BigField
+            label="Idade"
+            value={form.age}
+            onChange={(v) => { set("age", v); validateDados?.("age", v); }}
+            type="number"
+            max={120}
+            error={dadosErrors?.age}
+          />
           <div className="col-span-2">
             <div className="mb-2 text-sm text-muted-foreground">Gênero</div>
             <div className="flex gap-2">
@@ -462,8 +523,10 @@ function StepScreen({
           <BigField
             label="Peso desejado (kg)"
             value={form.goal_weight}
-            onChange={(v) => set("goal_weight", v)}
+            onChange={(v) => { set("goal_weight", v); validateDados?.("goal_weight", v); }}
             type="number"
+            max={300}
+            error={dadosErrors?.goal_weight}
             onEnter={onEnter}
           />
         </div>
@@ -895,8 +958,16 @@ function DetestadosStep({
 }
 
 function BigField({
-  label, value, onChange, type = "text", onEnter,
-}: { label: string; value: string; onChange: (v: string) => void; type?: string; onEnter?: () => void }) {
+  label, value, onChange, type = "text", onEnter, error, max,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  onEnter?: () => void;
+  error?: string;
+  max?: number;
+}) {
   return (
     <div>
       <div className="mb-2 text-sm text-muted-foreground">{label}</div>
@@ -904,15 +975,22 @@ function BigField({
         type={type}
         inputMode={type === "number" ? "decimal" : undefined}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          let v = e.target.value;
+          if (type === "number" && max !== undefined && v !== "" && Number(v) > max) {
+            v = String(max);
+          }
+          onChange(v);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" && onEnter) {
             e.preventDefault();
             onEnter();
           }
         }}
-        className="h-14 rounded-xl border-2 text-lg"
+        className={`h-14 rounded-xl border-2 text-lg${error ? " border-destructive" : ""}`}
       />
+      {error && <p className="mt-1.5 text-xs text-destructive">{error}</p>}
     </div>
   );
 }
