@@ -280,8 +280,22 @@ Deno.serve(async (req: Request) => {
 
   const arrayBuffer = await downloadData.arrayBuffer();
   const bytes = new Uint8Array(arrayBuffer);
-  const base64 = btoa(String.fromCharCode(...bytes));
+  // Spread direto causa stack overflow em imagens grandes (>130 KB). Usar chunks.
+  let binary = "";
+  const CHUNK = 8192;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  const base64 = btoa(binary);
   const mimeType = downloadData.type || "image/jpeg";
+
+  const MIME_SUPORTADOS = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+  if (!MIME_SUPORTADOS.has(mimeType)) {
+    return jsonResponse(
+      { success: false, error: `Formato "${mimeType}" não suportado. Envie a foto em JPEG, PNG ou WebP.` },
+      200,
+    );
+  }
 
   // ── 5. Análise com IA ────────────────────────────────────────────────────────
   let analise: RespostaVisao;
@@ -289,7 +303,12 @@ Deno.serve(async (req: Request) => {
     analise = await analisarImagemComIA(base64, mimeType);
   } catch (err: unknown) {
     const mensagem = err instanceof Error ? err.message : String(err);
-    return erro(`Erro ao processar imagem com IA: ${mensagem}`, 502);
+    // Retorna 200 com success:false para que o SDK do Supabase entregue o corpo ao cliente.
+    // Status 5xx faz o SDK engolir a mensagem de erro real.
+    return jsonResponse(
+      { success: false, error: `Erro ao processar imagem com IA: ${mensagem}` },
+      200,
+    );
   }
 
   // ── 6. Persistência no banco ─────────────────────────────────────────────────

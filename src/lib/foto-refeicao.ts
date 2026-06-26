@@ -6,13 +6,12 @@ import { todayISO } from "@/lib/calories";
 const BUCKET = "fotos_refeicoes";
 const TAMANHO_MAXIMO_BYTES = 10 * 1024 * 1024; // 10 MB
 
+// OpenAI Vision aceita apenas jpeg, png, gif e webp. HEIC/HEIF (padrão iPhone) não é suportado.
 const MIME_PARA_EXT: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/jpg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
-  "image/heic": "heic",
-  "image/heif": "heif",
 };
 
 const TIPOS_ACEITOS = new Set(Object.keys(MIME_PARA_EXT));
