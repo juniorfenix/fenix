@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { memo, useEffect, useMemo, useState, useCallback } from "react";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Dumbbell, ChevronDown, Play, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { profileQuery, treinosWeekQuery, type TreinoRow } from "@/lib/queries";
+import { profileQuery, perfilQuery, treinosWeekQuery, type TreinoRow } from "@/lib/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LazyMount } from "@/components/LazyMount";
 import {
@@ -168,6 +168,35 @@ const DayCard = memo(function DayCard({
 });
 
 function TreinosPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const { data: perfil, isSuccess: perfilReady } = useQuery({
+    ...perfilQuery(user?.id ?? ""),
+    enabled: !!user?.id,
+  });
+
+  useEffect(() => {
+    if (!perfilReady) return;
+    const papel = perfil?.papel;
+    if (papel === "instrutor" || papel === "nutricionista" || papel === "admin") {
+      navigate({ to: "/app/instrutor" });
+    }
+  }, [perfilReady, perfil?.papel, navigate]);
+
+  if (
+    perfilReady &&
+    (perfil?.papel === "instrutor" ||
+      perfil?.papel === "nutricionista" ||
+      perfil?.papel === "admin")
+  ) {
+    return null;
+  }
+
+  return <TreinosAluno />;
+}
+
+function TreinosAluno() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: profile } = useQuery({ ...profileQuery(user?.id ?? ""), enabled: !!user?.id });

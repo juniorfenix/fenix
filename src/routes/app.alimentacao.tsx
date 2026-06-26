@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Utensils,
@@ -13,7 +13,7 @@ import {
   Leaf,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { profileQuery } from "@/lib/queries";
+import { profileQuery, perfilQuery } from "@/lib/queries";
 import { MinhaAlimentacao, type PrefillRefeicao } from "@/components/minha-alimentacao";
 import { CardapioSugerido } from "@/components/cardapio-sugerido";
 import { CardapioPrescrito } from "@/components/cardapio-prescrito";
@@ -44,6 +44,35 @@ const META_COPOS_FALLBACK = 8;
 type Objetivo = "perda" | "ganho" | "reeducacao";
 
 function AlimentacaoPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const { data: perfil, isSuccess: perfilReady } = useQuery({
+    ...perfilQuery(user?.id ?? ""),
+    enabled: !!user?.id,
+  });
+
+  useEffect(() => {
+    if (!perfilReady) return;
+    const papel = perfil?.papel;
+    if (papel === "instrutor" || papel === "nutricionista" || papel === "admin") {
+      navigate({ to: "/app/instrutor" });
+    }
+  }, [perfilReady, perfil?.papel, navigate]);
+
+  if (
+    perfilReady &&
+    (perfil?.papel === "instrutor" ||
+      perfil?.papel === "nutricionista" ||
+      perfil?.papel === "admin")
+  ) {
+    return null;
+  }
+
+  return <AlimentacaoAluno />;
+}
+
+function AlimentacaoAluno() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const { data: profile } = useQuery({ ...profileQuery(user?.id ?? ""), enabled: !!user });

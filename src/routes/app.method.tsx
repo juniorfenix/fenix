@@ -1,5 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { perfilQuery } from "@/lib/queries";
 import {
   Utensils,
   ShoppingCart,
@@ -149,11 +152,27 @@ const TROCAS = [
 ];
 
 const SUPLEMENTOS_OK = [
-  { nome: "Whey Protein", motivo: "Praticidade para atingir a meta proteica diária. 1-2 doses se a comida não bastar." },
-  { nome: "Creatina", motivo: "3-5g/dia. Mais força, mais energia, mais músculo. O mais estudado da história." },
-  { nome: "Vitamina D3", motivo: "Maioria da população é deficiente. Faz exame e dose conforme orientação (geralmente 2.000-4.000 UI)." },
-  { nome: "Ômega 3 (EPA/DHA)", motivo: "Anti-inflamatório, saúde cardiovascular e cerebral. 1-2g de EPA+DHA por dia." },
-  { nome: "Cafeína", motivo: "Pré-treino natural. 3-6mg/kg antes do treino. Café puro já resolve." },
+  {
+    nome: "Whey Protein",
+    motivo: "Praticidade para atingir a meta proteica diária. 1-2 doses se a comida não bastar.",
+  },
+  {
+    nome: "Creatina",
+    motivo: "3-5g/dia. Mais força, mais energia, mais músculo. O mais estudado da história.",
+  },
+  {
+    nome: "Vitamina D3",
+    motivo:
+      "Maioria da população é deficiente. Faz exame e dose conforme orientação (geralmente 2.000-4.000 UI).",
+  },
+  {
+    nome: "Ômega 3 (EPA/DHA)",
+    motivo: "Anti-inflamatório, saúde cardiovascular e cerebral. 1-2g de EPA+DHA por dia.",
+  },
+  {
+    nome: "Cafeína",
+    motivo: "Pré-treino natural. 3-6mg/kg antes do treino. Café puro já resolve.",
+  },
 ];
 
 const SUPLEMENTOS_NAO = [
@@ -174,8 +193,14 @@ const GUIA_COMPRA_SUP = [
 
 const HORMONIOS = [
   { nome: "Grelina", desc: "Hormônio da fome. Dorme mal → sobe → você come mais no dia seguinte." },
-  { nome: "Leptina", desc: "Hormônio da saciedade. Dorme mal → cai → você nunca se sente satisfeito." },
-  { nome: "Cortisol", desc: "Hormônio do estresse. Sono ruim → cronicamente alto → acumula gordura abdominal." },
+  {
+    nome: "Leptina",
+    desc: "Hormônio da saciedade. Dorme mal → cai → você nunca se sente satisfeito.",
+  },
+  {
+    nome: "Cortisol",
+    desc: "Hormônio do estresse. Sono ruim → cronicamente alto → acumula gordura abdominal.",
+  },
 ];
 
 const ROTINA_NOITE = [
@@ -188,10 +213,22 @@ const ROTINA_NOITE = [
 ];
 
 const PLATEAU_ESTRATEGIAS = [
-  { nome: "Semana de Recarga", desc: "7–10 dias na manutenção (não acima). Hormônios resetam e o corpo volta a responder ao déficit." },
-  { nome: "Variação de Treino", desc: "Troque 50% dos exercícios, suba carga em 5% ou inclua HIIT 2x/semana por 3 semanas." },
-  { nome: "Ciclo Sódio/Carbo", desc: "Suba sódio para 3–4g/dia por 5 dias e faça 1 dia de refeed de carbo (+50%). Pesa de novo no 7º dia." },
-  { nome: "Ajuste Calórico", desc: "Reduza 100–150 kcal/dia (não mais). Mantenha por 2 semanas. Corte de carbo refinado, nunca proteína." },
+  {
+    nome: "Semana de Recarga",
+    desc: "7–10 dias na manutenção (não acima). Hormônios resetam e o corpo volta a responder ao déficit.",
+  },
+  {
+    nome: "Variação de Treino",
+    desc: "Troque 50% dos exercícios, suba carga em 5% ou inclua HIIT 2x/semana por 3 semanas.",
+  },
+  {
+    nome: "Ciclo Sódio/Carbo",
+    desc: "Suba sódio para 3–4g/dia por 5 dias e faça 1 dia de refeed de carbo (+50%). Pesa de novo no 7º dia.",
+  },
+  {
+    nome: "Ajuste Calórico",
+    desc: "Reduza 100–150 kcal/dia (não mais). Mantenha por 2 semanas. Corte de carbo refinado, nunca proteína.",
+  },
 ];
 
 // ---------- Busca ----------
@@ -240,17 +277,12 @@ function buildIndex(): Record<SectionKey, string> {
       ].join(" "),
     ),
     sono: normalize(
-      [
-        EXTRA_KEYWORDS.sono,
-        ...HORMONIOS.flatMap((h) => [h.nome, h.desc]),
-        ...ROTINA_NOITE,
-      ].join(" "),
+      [EXTRA_KEYWORDS.sono, ...HORMONIOS.flatMap((h) => [h.nome, h.desc]), ...ROTINA_NOITE].join(
+        " ",
+      ),
     ),
     plateau: normalize(
-      [
-        EXTRA_KEYWORDS.plateau,
-        ...PLATEAU_ESTRATEGIAS.flatMap((e) => [e.nome, e.desc]),
-      ].join(" "),
+      [EXTRA_KEYWORDS.plateau, ...PLATEAU_ESTRATEGIAS.flatMap((e) => [e.nome, e.desc])].join(" "),
     ),
   };
 }
@@ -306,7 +338,15 @@ function Highlight({ text, tokens }: { text: string; tokens: string[] }) {
 
 // ---------- UI helpers ----------
 
-function SectionTitle({ icon: Icon, title, subtitle }: { icon: LucideIcon; title: string; subtitle: string }) {
+function SectionTitle({
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  icon: LucideIcon;
+  title: string;
+  subtitle: string;
+}) {
   return (
     <div className="flex items-start gap-3">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-ember shadow-ember">
@@ -376,16 +416,39 @@ function ChecklistCard({
 // ---------- Page ----------
 
 function Method() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [openSections, setOpenSections] = useState<string[]>([]);
 
+  const { data: perfil, isSuccess: perfilReady } = useQuery({
+    ...perfilQuery(user?.id ?? ""),
+    enabled: !!user?.id,
+  });
+
   const { tokens, matched } = useMemo(() => matchSections(query), [query]);
 
-  // Auto-open sections that match the search; preserve user-opened ones
   const value = useMemo(() => {
     if (tokens.length === 0) return openSections;
     return Array.from(new Set([...openSections, ...Array.from(matched)]));
   }, [openSections, matched, tokens.length]);
+
+  useEffect(() => {
+    if (!perfilReady) return;
+    const papel = perfil?.papel;
+    if (papel === "instrutor" || papel === "nutricionista" || papel === "admin") {
+      navigate({ to: "/app/instrutor" });
+    }
+  }, [perfilReady, perfil?.papel, navigate]);
+
+  if (
+    perfilReady &&
+    (perfil?.papel === "instrutor" ||
+      perfil?.papel === "nutricionista" ||
+      perfil?.papel === "admin")
+  ) {
+    return null;
+  }
 
   const sectionsOrder: SectionKey[] = ["praticidade", "compras", "suplementos", "sono", "plateau"];
   const visibleOrder = sectionsOrder.filter((k) => matched.has(k));
@@ -393,7 +456,9 @@ function Method() {
   return (
     <main className="mx-auto max-w-2xl px-5 pt-10 pb-12">
       <header>
-        <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Método Fênix</div>
+        <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          Método Fênix
+        </div>
         <h1 className="font-display text-4xl mt-1.5 tracking-tight">Centro de Conhecimento</h1>
         <p className="mt-3 text-[15px] leading-[1.65] text-foreground/70 max-w-prose">
           Seu consultor de elite no bolso. Guias práticos para viver o método em qualquer situação.
@@ -405,10 +470,12 @@ function Method() {
         <MethodHub />
       </div>
 
-
       {/* Busca */}
       <div className="mt-6 relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden />
+        <Search
+          className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+          aria-hidden
+        />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -451,7 +518,11 @@ function Method() {
 
       {/* Card de autoridade */}
       <div className="mt-10 relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-ember p-6 shadow-ember">
-        <Quote className="absolute -top-2 -left-2 h-20 w-20 text-primary-foreground/10" strokeWidth={1} aria-hidden />
+        <Quote
+          className="absolute -top-2 -left-2 h-20 w-20 text-primary-foreground/10"
+          strokeWidth={1}
+          aria-hidden
+        />
         <div className="relative">
           <div className="text-[10px] uppercase tracking-widest font-semibold text-primary-foreground/80">
             Princípio Fênix
@@ -460,7 +531,8 @@ function Method() {
             O melhor suplemento é a consistência.
           </p>
           <p className="mt-2 text-sm text-primary-foreground/90 leading-relaxed">
-            Treinar 3x por semana, dormir 8h e comer proteína suficiente vale mais do que qualquer produto.
+            Treinar 3x por semana, dormir 8h e comer proteína suficiente vale mais do que qualquer
+            produto.
           </p>
         </div>
       </div>
@@ -478,14 +550,20 @@ function SectionAccordion({ sectionKey, tokens }: { sectionKey: SectionKey; toke
         className="glass rounded-2xl border-0 px-5 data-[state=open]:border data-[state=open]:border-primary/20"
       >
         <AccordionTrigger className="hover:no-underline py-5">
-          <SectionTitle icon={Utensils} title="Guia de Praticidade" subtitle="Como comer fora de casa" />
+          <SectionTitle
+            icon={Utensils}
+            title="Guia de Praticidade"
+            subtitle="Como comer fora de casa"
+          />
         </AccordionTrigger>
         <AccordionContent className="pb-6">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="border-border/50">
-                  <TableHead className="text-xs uppercase tracking-wider w-[140px]">Situação</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider w-[140px]">
+                    Situação
+                  </TableHead>
                   <TableHead className="text-xs uppercase tracking-wider">Como agir</TableHead>
                 </TableRow>
               </TableHeader>
@@ -522,7 +600,9 @@ function SectionAccordion({ sectionKey, tokens }: { sectionKey: SectionKey; toke
             <div className="grid gap-3 sm:grid-cols-3">
               {EVENTOS_FASES.map((f) => (
                 <div key={f.fase} className="rounded-xl border border-border/60 p-4">
-                  <div className={`text-[13px] font-semibold uppercase tracking-widest ${f.cor}`}>{f.fase}</div>
+                  <div className={`text-[13px] font-semibold uppercase tracking-widest ${f.cor}`}>
+                    {f.fase}
+                  </div>
                   <ul className="mt-3 space-y-2">
                     {f.itens.map((it) => (
                       <Bullet key={it}>
@@ -546,15 +626,20 @@ function SectionAccordion({ sectionKey, tokens }: { sectionKey: SectionKey; toke
         className="glass rounded-2xl border-0 px-5 data-[state=open]:border data-[state=open]:border-primary/20"
       >
         <AccordionTrigger className="hover:no-underline py-5">
-          <SectionTitle icon={ShoppingCart} title="Guia de Compras Inteligente" subtitle="Supermercado sem armadilhas" />
+          <SectionTitle
+            icon={ShoppingCart}
+            title="Guia de Compras Inteligente"
+            subtitle="Supermercado sem armadilhas"
+          />
         </AccordionTrigger>
         <AccordionContent className="pb-6 space-y-6">
           <div>
             <h3 className="font-display text-lg mb-2 tracking-tight">Regra dos 80/20</h3>
             <p className="text-[15px] leading-[1.7] text-foreground/75">
-              80% do seu carrinho deve ser <span className="text-foreground">comida de verdade</span> (proteínas,
-              vegetais, frutas, gorduras boas, carboidratos integrais). Os outros 20% ficam para escolhas livres,
-              sem culpa. Essa é a proporção que sustenta resultado a longo prazo.
+              80% do seu carrinho deve ser{" "}
+              <span className="text-foreground">comida de verdade</span> (proteínas, vegetais,
+              frutas, gorduras boas, carboidratos integrais). Os outros 20% ficam para escolhas
+              livres, sem culpa. Essa é a proporção que sustenta resultado a longo prazo.
             </p>
           </div>
 
@@ -580,7 +665,12 @@ function SectionAccordion({ sectionKey, tokens }: { sectionKey: SectionKey; toke
           </div>
 
           <div className="pt-2">
-            <ChecklistCard title="Checklist Rápido no Caixa" items={CHECKLIST_CAIXA} variant="check" tokens={tokens} />
+            <ChecklistCard
+              title="Checklist Rápido no Caixa"
+              items={CHECKLIST_CAIXA}
+              variant="check"
+              tokens={tokens}
+            />
           </div>
 
           <div>
@@ -623,7 +713,11 @@ function SectionAccordion({ sectionKey, tokens }: { sectionKey: SectionKey; toke
         className="glass rounded-2xl border-0 px-5 data-[state=open]:border data-[state=open]:border-primary/20"
       >
         <AccordionTrigger className="hover:no-underline py-5">
-          <SectionTitle icon={Pill} title="Guia de Suplementação" subtitle="O que funciona, o que é marketing" />
+          <SectionTitle
+            icon={Pill}
+            title="Guia de Suplementação"
+            subtitle="O que funciona, o que é marketing"
+          />
         </AccordionTrigger>
         <AccordionContent className="pb-6 space-y-6">
           <div>
@@ -665,7 +759,9 @@ function SectionAccordion({ sectionKey, tokens }: { sectionKey: SectionKey; toke
           <div>
             <div className="flex items-center gap-2 mb-3">
               <BookOpen className="h-4 w-4 text-accent" />
-              <h3 className="font-display text-lg tracking-tight">Guia de Compra — como ler rótulos</h3>
+              <h3 className="font-display text-lg tracking-tight">
+                Guia de Compra — como ler rótulos
+              </h3>
             </div>
             <ul className="space-y-2">
               {GUIA_COMPRA_SUP.map((g) => (
@@ -687,12 +783,16 @@ function SectionAccordion({ sectionKey, tokens }: { sectionKey: SectionKey; toke
         className="glass rounded-2xl border-0 px-5 data-[state=open]:border data-[state=open]:border-primary/20"
       >
         <AccordionTrigger className="hover:no-underline py-5">
-          <SectionTitle icon={Moon} title="Sono e Recuperação" subtitle="O pilar esquecido do emagrecimento" />
+          <SectionTitle
+            icon={Moon}
+            title="Sono e Recuperação"
+            subtitle="O pilar esquecido do emagrecimento"
+          />
         </AccordionTrigger>
         <AccordionContent className="pb-6 space-y-6">
           <p className="text-[15px] leading-[1.7] text-foreground/75">
-            Você pode treinar perfeito e comer impecável — se dormir mal, seu corpo trabalha contra você. O sono
-            regula 3 hormônios que decidem se você vai queimar ou estocar gordura.
+            Você pode treinar perfeito e comer impecável — se dormir mal, seu corpo trabalha contra
+            você. O sono regula 3 hormônios que decidem se você vai queimar ou estocar gordura.
           </p>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -728,12 +828,16 @@ function SectionAccordion({ sectionKey, tokens }: { sectionKey: SectionKey; toke
       className="glass rounded-2xl border-0 px-5 data-[state=open]:border data-[state=open]:border-primary/20"
     >
       <AccordionTrigger className="hover:no-underline py-5">
-        <SectionTitle icon={TrendingDown} title="Quebra de Plateau" subtitle="As 4 estratégias Fênix" />
+        <SectionTitle
+          icon={TrendingDown}
+          title="Quebra de Plateau"
+          subtitle="As 4 estratégias Fênix"
+        />
       </AccordionTrigger>
       <AccordionContent className="pb-6 space-y-4">
         <p className="text-[15px] leading-[1.7] text-foreground/75">
-          Toda quebra de plateau começa com diagnóstico — não com mudança aleatória. Use o Protocolo de Plateau
-          no Hub de Execução para identificar qual estratégia se aplica ao seu caso.
+          Toda quebra de plateau começa com diagnóstico — não com mudança aleatória. Use o Protocolo
+          de Plateau no Hub de Execução para identificar qual estratégia se aplica ao seu caso.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {PLATEAU_ESTRATEGIAS.map((e, i) => (
@@ -756,4 +860,3 @@ function SectionAccordion({ sectionKey, tokens }: { sectionKey: SectionKey; toke
     </AccordionItem>
   );
 }
-

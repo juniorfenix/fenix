@@ -17,10 +17,12 @@ import {
   Dumbbell,
   Users,
   ClipboardList,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { profileQuery, perfilQuery } from "@/lib/queries";
+import { isAluno, isAdmin, isProfissional } from "@/lib/role-helpers";
 
 export const Route = createFileRoute("/app")({
   component: AppShell,
@@ -36,6 +38,17 @@ const TABS_BASE: Tab[] = [
   { to: "/app/profile", icon: User, label: "Perfil", exact: false },
 ];
 
+const TABS_PROFISSIONAL: Tab[] = [
+  { to: "/app/instrutor", icon: Users, label: "Alunos", exact: false },
+  { to: "/app/profile", icon: User, label: "Perfil", exact: false },
+];
+
+const TABS_ADMIN: Tab[] = [
+  { to: "/app/admin", icon: Shield, label: "Admin", exact: false },
+  { to: "/app/instrutor", icon: Users, label: "Alunos", exact: false },
+  { to: "/app/profile", icon: User, label: "Perfil", exact: false },
+];
+
 function AppShell() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -48,17 +61,16 @@ function AppShell() {
     enabled: !!userId,
   });
 
-  const { data: perfil } = useQuery({
+  const { data: perfil, isLoading: perfilLoading } = useQuery({
     ...perfilQuery(userId),
     enabled: !!userId,
   });
 
   const tabs = useMemo<Tab[]>(() => {
     const papel = perfil?.papel;
-    if (papel === "instrutor" || papel === "nutricionista" || papel === "admin") {
-      return [...TABS_BASE, { to: "/app/instrutor", icon: Users, label: "Alunos", exact: false }];
-    }
-    if (papel === "aluno") {
+    if (isAdmin(papel)) return TABS_ADMIN;
+    if (isProfissional(papel)) return TABS_PROFISSIONAL;
+    if (isAluno(papel)) {
       return [
         ...TABS_BASE,
         { to: "/app/meu-plano", icon: ClipboardList, label: "Meu Plano", exact: false },
@@ -73,11 +85,13 @@ function AppShell() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (!user || profileLoading || !profile) return;
+    if (!user || profileLoading || perfilLoading || !profile) return;
+    // Profissionais e admins não passam pelo onboarding de aluno
+    if (isAdmin(perfil?.papel) || isProfissional(perfil?.papel)) return;
     if (!profile.onboarding_complete && !location.pathname.startsWith("/onboarding")) {
       navigate({ to: "/onboarding" });
     }
-  }, [user, profile, profileLoading, location.pathname, navigate]);
+  }, [user, profile, profileLoading, perfilLoading, perfil?.papel, location.pathname, navigate]);
 
   useEffect(() => {
     if (loading || !user) return;
@@ -86,9 +100,12 @@ function AppShell() {
     });
   }, [loading, user, router, tabs]);
 
-  const showSpinner = useDelayedFlag(loading || !user || (!!userId && profileLoading), 200);
+  const showSpinner = useDelayedFlag(
+    loading || !user || (!!userId && (profileLoading || perfilLoading)),
+    200,
+  );
 
-  if (loading || !user || (!!userId && profileLoading)) {
+  if (loading || !user || (!!userId && (profileLoading || perfilLoading))) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         {showSpinner ? <Flame className="h-8 w-8 text-primary animate-pulse" /> : null}

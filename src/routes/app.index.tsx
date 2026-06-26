@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -48,6 +48,7 @@ import {
   mealsRecentQuery,
   badgesQuery,
   guiasMentaisQuery,
+  perfilQuery,
 } from "@/lib/queries";
 
 export const Route = createFileRoute("/app/")({
@@ -55,6 +56,36 @@ export const Route = createFileRoute("/app/")({
 });
 
 function Dashboard() {
+  const { user } = useAuth();
+  const userId = user?.id ?? "";
+  const navigate = useNavigate();
+
+  const { data: perfil, isSuccess: perfilReady } = useQuery({
+    ...perfilQuery(userId),
+    enabled: !!userId,
+  });
+
+  useEffect(() => {
+    if (!perfilReady) return;
+    const papel = perfil?.papel;
+    if (papel === "instrutor" || papel === "nutricionista" || papel === "admin") {
+      navigate({ to: "/app/instrutor" });
+    }
+  }, [perfilReady, perfil?.papel, navigate]);
+
+  if (
+    perfilReady &&
+    (perfil?.papel === "instrutor" ||
+      perfil?.papel === "nutricionista" ||
+      perfil?.papel === "admin")
+  ) {
+    return null;
+  }
+
+  return <DashboardAluno />;
+}
+
+function DashboardAluno() {
   const { user } = useAuth();
   const userId = user?.id ?? "";
   const qc = useQueryClient();

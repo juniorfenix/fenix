@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { perfilQuery } from "@/lib/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,20 +44,11 @@ function AdminAlunosPage() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
 
-  // Gate: only admin
+  // Gate: only admin — usa perfis como fonte de verdade (user_roles está incompleto)
   const { data: isAdmin, isLoading: roleLoading } = useQuery({
-    queryKey: ["is-admin", user?.id],
+    ...perfilQuery(user?.id ?? ""),
     enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user!.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (error) throw error;
-      return !!data;
-    },
+    select: (data) => data?.papel === "admin",
   });
 
   useEffect(() => {

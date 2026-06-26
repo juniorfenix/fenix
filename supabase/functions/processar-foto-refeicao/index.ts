@@ -162,11 +162,14 @@ Retorne EXCLUSIVAMENTE um JSON válido, sem markdown, sem explicações, com est
   const conteudo: string = json?.choices?.[0]?.message?.content ?? "";
 
   // Detecta recusa do modelo antes de tentar parsear JSON
-  const jsonLimpo = conteudo.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+  const jsonLimpo = conteudo
+    .replace(/```json\s*/g, "")
+    .replace(/```\s*/g, "")
+    .trim();
   if (!jsonLimpo.startsWith("{")) {
     throw new Error(
       "Não foi possível identificar alimentos nesta imagem. " +
-      "Tente uma foto mais nítida, com boa iluminação e o prato centralizado.",
+        "Tente uma foto mais nítida, com boa iluminação e o prato centralizado.",
     );
   }
 
