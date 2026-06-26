@@ -21,7 +21,7 @@ No test suite is configured. There is no `bun test` or equivalent script.
 - **TanStack Start** (SSR framework on top of TanStack Router + Vite)
 - **TanStack Query** for all server-state caching (staleTime 1 min, gcTime 5 min, `refetchOnWindowFocus: false`)
 - **Supabase** (Postgres + Auth) as the only backend
-- **Cloudflare Workers** as the deployment target (`wrangler.jsonc`)
+- **Vercel** as the deployment target (Nitro preset configured in `vite.config.ts`, `vercel.json` at root)
 - **Tailwind CSS v4** + **shadcn/ui** (Radix primitives) for styling
 
 ### Route tree
@@ -41,6 +41,11 @@ Routes live in `src/routes/` and are file-based via TanStack Router's codegen (`
 | `/app/profile` | Profile editor + settings |
 | `/app/guias/$chave` | Individual mental guide page (content from `guias_mentais` table) |
 | `/app/admin` | Admin panel (user management) |
+| `/app/admin/$userId` | Individual user management (admin only) |
+| `/app/instrutor` | Instructor dashboard — lists linked students with last workout/diet dates |
+| `/app/instrutor/$alunoId` | Per-student management — create/edit training and diet plans |
+| `/app/instrutor/exercicios` | Exercise catalog browser for instructors |
+| `/app/meu-plano` | Student's view of assigned training and diet plans with media |
 
 ### Auth flow
 
@@ -50,7 +55,29 @@ Routes live in `src/routes/` and are file-based via TanStack Router's codegen (`
 
 All React Query query options are defined in `src/lib/queries.ts`. Every query is keyed by `userId` so different users never share cache entries. Public/static data (e.g. `guiasMentaisQuery`, `treinosQuery`) uses `staleTime: 10 * 60 * 1000`.
 
-Key Supabase tables: `profiles`, `weight_logs`, `diario_alimentar`, `diario_registro` (daily check-ins), `badges`, `treinos`, `dietas`, `dietas_dicas`, `guias_mentais`.
+Key Supabase tables:
+
+| Table | Purpose |
+|---|---|
+| `profiles` | User profiles (weight, goals, onboarding state) |
+| `perfis` | Role-based identity (`aluno` / `instrutor` / `nutricionista` / `admin`) |
+| `weight_logs` | Weight entries |
+| `diario_alimentar` | Food diary |
+| `diario_registro` | Daily check-ins (mood, responses) |
+| `badges` | Earned badges |
+| `treinos` | Public workout exercise catalog (filtered by nivel/genero/local/dia) |
+| `dietas` | Suggested diet meal plans |
+| `dietas_dicas` | Diet tips |
+| `guias_mentais` | Mental guide content |
+| `exercicios` | Instructor exercise catalog with `gif_url` (ExerciseDB CDN) and `video_url` |
+| `instrutores_alunos` | Instructor ↔ student relationships |
+| `planos_treino` | Training plans assigned by instructor |
+| `planos_treino_exercicios` | Exercises within a training plan |
+| `plano_treino_conclusoes` | Student workout completion log |
+| `planos_alimentares` | Diet plans assigned by instructor |
+| `plano_alimentar_refeicoes` | Meals within a diet plan |
+| `plano_alimentar_adesao` | Student diet adherence log |
+| `notificacoes_instrutor` | Notifications sent to instructors (e.g. student completed workout) |
 
 ### Utility libraries (`src/lib/`)
 
@@ -60,9 +87,9 @@ Key Supabase tables: `profiles`, `weight_logs`, `diario_alimentar`, `diario_regi
 - `substituicao.ts` — food substitution logic
 - `queries.ts` — all TanStack Query `queryOptions` factories
 
-### SSR / Cloudflare
+### SSR / Vercel
 
-`src/server.ts` wraps the TanStack Start server entry and catches SSR crashes that h3 silently swallows into `{"unhandled":true}` JSON 500 responses, converting them to a branded HTML error page. `vite.config.ts` delegates entirely to `@lovable.dev/vite-tanstack-config` — do not add plugins already included by that preset (tanstackStart, viteReact, tailwindcss, tsConfigPaths, cloudflare).
+`src/server.ts` wraps the TanStack Start server entry and catches SSR crashes that h3 silently swallows into `{"unhandled":true}` JSON 500 responses, converting them to a branded HTML error page. `vite.config.ts` delegates entirely to `@lovable.dev/vite-tanstack-config` with a Nitro `vercel` preset — do not add plugins already included by that preset (tanstackStart, viteReact, tailwindcss, tsConfigPaths). Build output lands in `.vercel/output/` (configured in `vite.config.ts`).
 
 ### Environment variables
 
@@ -78,4 +105,4 @@ The `.env` file is present locally and must not be committed.
 - Glass-morphism cards: `glass` utility class
 - Typography: Cormorant Garamond (`font-display`) for headings, Inter for body
 - Toasts via `sonner`; all Radix primitives from `src/components/ui/`
-- `localStorage` keys for client-only persistence: `fenix:planner:YYYY-WW` (weekly planner), `fenix:mealprep` (meal prep checklist)
+- `localStorage` keys for client-only persistence: `fenix:mealprep` (meal prep checklist). The weekly planner was migrated to `planner_semanal` table in Supabase (Fase 3).

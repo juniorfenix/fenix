@@ -354,6 +354,8 @@ itens_refeicao (
 - [x] Migration `fase0_tabelas_originais_app` — criadas tabelas originais no projeto `sqcnmqvtbpyryiqhlaja`: `profiles`, `weight_logs`, `diario_alimentar`, `diario_registro`, `badges`, `guias_mentais`, `treinos`, `dietas`, `dietas_dicas` com RLS — **executado em 09/06/2026**
 - [x] Trigger `criar_perfil_usuario` atualizado para criar `perfis` + `profiles` simultaneamente — **executado em 09/06/2026**
 - [x] Contas de teste criadas: `professor@fenix.teste` (instrutor) e `aluno@fenix.teste` (aluno), vinculados em `instrutores_alunos` — **executado em 09/06/2026**
+- [x] Tabelas de tracking: `plano_treino_conclusoes` (aluno marca treino do dia como concluído) e `plano_alimentar_adesao` (aluno confirma adesão ao plano alimentar)
+- [x] Tabela `notificacoes_instrutor` — notifica o instrutor quando aluno conclui treino ou segue dieta (polling a cada 30s via `refetchInterval`)
 
 ### Fase 3 — Persistência completa de dados ✅ CONCLUÍDA em 09/06/2026
 
@@ -399,40 +401,37 @@ itens_refeicao (
 - [x] `src/routes/app.admin.$userId.tsx` — null-coalescing no export CSV
 - [x] **Zero erros TypeScript** — `npx tsc --noEmit` passa limpo
 
-### Fase 4 — Mídia no app ✅ PARCIALMENTE CONCLUÍDA em 09/06/2026
+### Fase 4 — Mídia no app ✅ CONCLUÍDA em 19/06/2026
 - [x] Componente `<ExercicioMedia>` com suporte a GIF, MP4 e imagem estática — `src/components/exercicio-media.tsx`
 - [x] Lazy load via `<LazyMount>` + fallback com ícone quando sem mídia
 - [x] Integrado em `/app/treinos` — cards e modal de detalhe
 - [x] Coluna `url_midia` na tabela `treinos` — suporta URL de imagem ou MP4 (autoplay loop muted)
-- [ ] Popular `url_midia` nos 29 exercícios da tabela `treinos` — **upload manual via Supabase Storage bucket `exercicios-gifs`** *(pendente)*
-- [ ] Integração com `planos_treino_exercicios` — exibir mídia no Meu Plano do aluno
+- [x] `gif_url` dos exercícios na tabela `exercicios` migrado para CDN ExerciseDB — **commit `241b85f` em 19/06/2026**
+- [x] Integração com `planos_treino_exercicios` — exibe mídia no Meu Plano do aluno via `planoExerciciosQuery`
 
-### Fase 5 — Foto → IA → Banco (2–3 semanas)
-- [ ] Bucket privado `fotos_refeicoes` com RLS por `user_id`
-- [ ] Edge Function `processar-foto-refeicao`
-- [ ] Integração com API de visão
-- [ ] Tabelas `refeicoes` e `itens_refeicao` com RLS
-- [ ] UI: câmera → preview → confirmação do resultado da IA → salvar
-- [ ] Histórico de refeições por dia com totais calóricos
+### Fase 5 — Foto → IA → Banco ✅ CONCLUÍDA em 26/06/2026
+- [x] Bucket privado `fotos_refeicoes` com RLS por `user_id` — helper `src/lib/foto-refeicao.ts`
+- [x] Edge Function `processar-foto-refeicao` — `supabase/functions/processar-foto-refeicao/index.ts` (410 linhas)
+- [x] Integração com API de visão (gpt-4o por padrão, configurável via `VISION_API_MODEL` / `VISION_API_BASE_URL`)
+- [x] Tabelas `refeicoes` e `itens_refeicao` com RLS — types em `src/integrations/supabase/types.ts`, queries em `src/lib/queries.ts`
+- [x] UI: câmera → preview → confirmação do resultado da IA → salvar — `src/components/registrar-foto-refeicao.tsx` integrado em `/app/alimentacao`
+- [ ] Histórico de refeições por dia com totais calóricos — queries `refeicoesDataQuery` / `refeicoesHistoricoQuery` definidas mas **ainda não exibidas na UI**
+
+### Fase 6 — Conteúdo e cardápios ✅ CONCLUÍDA em 26/06/2026
+- [x] Componente `<CardapioSugerido>` — exibe cardápios da tabela `cardapios` filtrados por objetivo e gênero (`src/components/cardapio-sugerido.tsx`)
+- [x] Componente `<CardapioPrescrito>` — exibe protocolo nutricional prescrito pelo admin (`src/components/cardapio-prescrito.tsx`)
+- [x] Editor de protocolos `<ProtocoloEditor>` — gerenciamento de protocolos nutricionais (`src/components/protocolo-editor.tsx`)
+- [x] Alertas de trocas inteligentes `<AlertasTrocas>` — notificações de substituições alimentares (`src/components/alertas-trocas.tsx`)
+- [x] Hub do Método Fênix `/app/method` — conteúdo de meal prep, guias, receitas e protocolo platô (`src/routes/app.method.tsx`)
+- [x] Catálogo de exercícios para instrutores `/app/instrutor/exercicios` — CRUD de exercícios com busca e filtros (`src/routes/app.instrutor.exercicios.tsx`)
 
 ---
 
 ## Próximos passos imediatos
 
-1. **Renomear arquivos no Storage** — remover espaços e corrigir typos nos 15 arquivos *(pendente)*
-2. ~~Aplicar Fase 1 migration~~ — ✅ concluído em 09/06/2026
-3. ~~Popular `exercicios`~~ — ✅ 15 linhas inseridas em 09/06/2026
-4. **Habilitar Leaked Password Protection** — configuração no painel do Supabase Auth *(pendente)*
-5. ~~Confirmar modelo de papéis~~ — ✅ implementado com `perfis.papel` (`aluno`/`instrutor`/`admin`)
-6. ~~Iniciar Fase 2~~ — ✅ concluído em 09/06/2026
-7. ~~Migrar tabelas originais para `sqcnmqvtbpyryiqhlaja`~~ — ✅ concluído em 09/06/2026 (migration `fase0_tabelas_originais_app`)
-8. ~~Persistir todos os dados no banco~~ — ✅ Fase 3 concluída em 09/06/2026 (22 tabelas, 0 erros TS)
-9. **Testar fluxo completo de onboarding** — cadastro → quiz → `preferencias_alimentares` + `profiles` populados *(pendente)*
-10. **Popular `cardapios`** — adicionar cardápios sugeridos para perda/ganho/reeducacao × homem/mulher *(pendente)*
-11. **Cadastrar primeiro admin em `user_roles`** — `INSERT INTO user_roles (user_id, role) VALUES ('<uuid>', 'admin')` *(pendente)*
-12. ~~Iniciar Fase 4~~ — ✅ `<ExercicioMedia>` implementado com lazy-load e fallback em 09/06/2026
-13. **Popular `url_midia` na tabela `treinos`** — 29 exercícios aguardando mídia; fazer upload manual no bucket `exercicios-gifs` e atualizar a coluna via SQL *(pendente)*
-    - Upload no painel Supabase Storage → `exercicios-gifs`
-    - URL pública: `https://sqcnmqvtbpyryiqhlaja.supabase.co/storage/v1/object/public/exercicios-gifs/<arquivo>`
-    - Atualizar: `UPDATE treinos SET url_midia = '<url>' WHERE exercicio = '<nome>';`
-14. **Integrar mídia em Meu Plano** — exibir `url_midia` nos cards de `planos_treino_exercicios` *(próximo)*
+1. **Exibir histórico de refeições na UI** — queries `refeicoesDataQuery` e `refeicoesHistoricoQuery` já estão definidas em `src/lib/queries.ts`; falta criar o componente de listagem diária com totais calóricos e integrá-lo em `/app/alimentacao`
+2. **Habilitar Leaked Password Protection** — configuração manual no painel do Supabase: Dashboard → Auth → Providers → Email → Password Security *(pendente)*
+3. **Cadastrar primeiro admin em `user_roles`** — `INSERT INTO user_roles (user_id, role) VALUES ('<uuid>', 'admin')` *(pendente — feito via Dashboard SQL editor)*
+4. **Popular `cardapios`** — `<CardapioSugerido>` consome a tabela `cardapios`; adicionar linhas para perda/ganho/reeducacao × homem/mulher *(pendente — feito via migration ou Dashboard)*
+5. **Configurar secrets da Edge Function** — `supabase secrets set VISION_API_KEY=<key>` para ativar o processamento de fotos em produção *(pendente)*
+6. **Renomear arquivos no Storage** — baixa prioridade após migração para ExerciseDB CDN; bucket `exercicios-gifs` ainda tem arquivos com espaços e typos

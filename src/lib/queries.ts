@@ -735,6 +735,115 @@ export const adesaoAlimentarQuery = (planoId: string, alunoId: string, days = 30
     },
   });
 
+// ---------- Fase 5: Refeições com IA ----------
+
+export type RefeicaoTipo = "cafe_da_manha" | "almoco" | "jantar" | "lanche";
+
+export type RefeicaoRow = {
+  id: string;
+  user_id: string;
+  data: string;
+  tipo: RefeicaoTipo;
+  foto_url: string | null;
+  processado_por_ia: boolean;
+  confirmado_pelo_usuario: boolean;
+  calorias_total: number;
+  proteinas_total: number;
+  carboidratos_total: number;
+  gorduras_total: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ItemRefeicaoRow = {
+  id: string;
+  refeicao_id: string;
+  nome_alimento: string;
+  quantidade_gramas: number | null;
+  calorias: number | null;
+  proteinas: number | null;
+  carboidratos: number | null;
+  gorduras: number | null;
+  confianca_ia: number | null;
+  created_at: string;
+};
+
+export type RefeicaoComItensRow = RefeicaoRow & { itens: ItemRefeicaoRow[] };
+
+export type MacrosTotais = {
+  calorias: number;
+  proteinas: number;
+  carboidratos: number;
+  gorduras: number;
+};
+
+export function calcularMacrosTotais(itens: ItemRefeicaoRow[]): MacrosTotais {
+  return itens.reduce(
+    (acc, item) => ({
+      calorias: acc.calorias + (item.calorias ?? 0),
+      proteinas: acc.proteinas + (item.proteinas ?? 0),
+      carboidratos: acc.carboidratos + (item.carboidratos ?? 0),
+      gorduras: acc.gorduras + (item.gorduras ?? 0),
+    }),
+    { calorias: 0, proteinas: 0, carboidratos: 0, gorduras: 0 },
+  );
+}
+
+export const refeicoesDataQuery = (userId: string, data: string) =>
+  queryOptions({
+    queryKey: ["refeicoes", userId, "data", data],
+    queryFn: async (): Promise<RefeicaoRow[]> => {
+      const { data: rows, error } = await supabase
+        .from("refeicoes")
+        .select(
+          "id,user_id,data,tipo,foto_url,processado_por_ia,confirmado_pelo_usuario,calorias_total,proteinas_total,carboidratos_total,gorduras_total,created_at,updated_at",
+        )
+        .eq("user_id", userId)
+        .eq("data", data)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (rows ?? []) as RefeicaoRow[];
+    },
+  });
+
+export const refeicaoComItensQuery = (refeicaoId: string) =>
+  queryOptions({
+    queryKey: ["refeicao-com-itens", refeicaoId],
+    queryFn: async (): Promise<RefeicaoComItensRow> => {
+      const { data, error } = await supabase
+        .from("refeicoes")
+        .select(
+          "id,user_id,data,tipo,foto_url,processado_por_ia,confirmado_pelo_usuario,calorias_total,proteinas_total,carboidratos_total,gorduras_total,created_at,updated_at,itens_refeicao(id,refeicao_id,nome_alimento,quantidade_gramas,calorias,proteinas,carboidratos,gorduras,confianca_ia,created_at)",
+        )
+        .eq("id", refeicaoId)
+        .single();
+      if (error) throw error;
+      const { itens_refeicao: itens, ...refeicao } = data as RefeicaoRow & {
+        itens_refeicao: ItemRefeicaoRow[];
+      };
+      return { ...refeicao, itens: itens ?? [] };
+    },
+  });
+
+export const refeicaoHistoricoQuery = (userId: string, dataInicio: string, dataFim: string) =>
+  queryOptions({
+    queryKey: ["refeicoes", userId, "historico", dataInicio, dataFim],
+    queryFn: async (): Promise<RefeicaoRow[]> => {
+      const { data, error } = await supabase
+        .from("refeicoes")
+        .select(
+          "id,user_id,data,tipo,foto_url,processado_por_ia,confirmado_pelo_usuario,calorias_total,proteinas_total,carboidratos_total,gorduras_total,created_at,updated_at",
+        )
+        .eq("user_id", userId)
+        .gte("data", dataInicio)
+        .lte("data", dataFim)
+        .order("data", { ascending: false })
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as RefeicaoRow[];
+    },
+  });
+
 export const dietasQuery = (params: { categoria: string; genero: string }) =>
   queryOptions({
     queryKey: ["dietas", params],

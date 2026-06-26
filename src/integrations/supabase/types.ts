@@ -398,6 +398,53 @@ export type Database = {
           },
         ];
       };
+      itens_refeicao: {
+        Row: {
+          id: string;
+          refeicao_id: string;
+          nome_alimento: string;
+          quantidade_gramas: number | null;
+          calorias: number | null;
+          proteinas: number | null;
+          carboidratos: number | null;
+          gorduras: number | null;
+          confianca_ia: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          refeicao_id: string;
+          nome_alimento: string;
+          quantidade_gramas?: number | null;
+          calorias?: number | null;
+          proteinas?: number | null;
+          carboidratos?: number | null;
+          gorduras?: number | null;
+          confianca_ia?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          refeicao_id?: string;
+          nome_alimento?: string;
+          quantidade_gramas?: number | null;
+          calorias?: number | null;
+          proteinas?: number | null;
+          carboidratos?: number | null;
+          gorduras?: number | null;
+          confianca_ia?: number | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "itens_refeicao_refeicao_id_fkey";
+            columns: ["refeicao_id"];
+            isOneToOne: false;
+            referencedRelation: "refeicoes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       metas_usuario: {
         Row: {
           created_at: string | null;
@@ -983,6 +1030,54 @@ export type Database = {
           observacoes?: string | null;
           updated_at?: string | null;
           user_id?: string;
+        };
+        Relationships: [];
+      };
+      refeicoes: {
+        Row: {
+          id: string;
+          user_id: string;
+          data: string;
+          tipo: string;
+          foto_url: string | null;
+          processado_por_ia: boolean;
+          confirmado_pelo_usuario: boolean;
+          calorias_total: number;
+          proteinas_total: number;
+          carboidratos_total: number;
+          gorduras_total: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          data: string;
+          tipo: string;
+          foto_url?: string | null;
+          processado_por_ia?: boolean;
+          confirmado_pelo_usuario?: boolean;
+          calorias_total?: number;
+          proteinas_total?: number;
+          carboidratos_total?: number;
+          gorduras_total?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          data?: string;
+          tipo?: string;
+          foto_url?: string | null;
+          processado_por_ia?: boolean;
+          confirmado_pelo_usuario?: boolean;
+          calorias_total?: number;
+          proteinas_total?: number;
+          carboidratos_total?: number;
+          gorduras_total?: number;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };

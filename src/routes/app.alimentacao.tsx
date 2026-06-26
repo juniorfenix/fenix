@@ -1,7 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Utensils, Droplet, Target, Beef, Wheat, Salad, TrendingDown, TrendingUp, Leaf } from "lucide-react";
+import {
+  Utensils,
+  Droplet,
+  Target,
+  Beef,
+  Wheat,
+  Salad,
+  TrendingDown,
+  TrendingUp,
+  Leaf,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { profileQuery } from "@/lib/queries";
 import { MinhaAlimentacao, type PrefillRefeicao } from "@/components/minha-alimentacao";
@@ -12,13 +22,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { mapGenero } from "@/lib/profile";
 import { todayISO } from "@/lib/calories";
-
+import { RegistrarFotoRefeicao } from "@/components/registrar-foto-refeicao";
 
 export const Route = createFileRoute("/app/alimentacao")({
   head: () => ({
     meta: [
       { title: "Minha Alimentação" },
-      { name: "description", content: "Metas nutricionais, progresso diário e registro de refeições." },
+      {
+        name: "description",
+        content: "Metas nutricionais, progresso diário e registro de refeições.",
+      },
     ],
   }),
   component: AlimentacaoPage,
@@ -28,7 +41,6 @@ const ML_POR_COPO = 250;
 const ML_POR_KG = 35;
 const META_COPOS_FALLBACK = 8;
 
-
 type Objetivo = "perda" | "ganho" | "reeducacao";
 
 function AlimentacaoPage() {
@@ -36,8 +48,6 @@ function AlimentacaoPage() {
   const qc = useQueryClient();
   const { data: profile } = useQuery({ ...profileQuery(user?.id ?? ""), enabled: !!user });
   const today = todayISO();
-
-
 
   // Meta de hidratação dinâmica: peso (kg) * 35ml; copo = 250ml
   const pesoKg = Number(profile?.current_weight) || 0;
@@ -84,14 +94,16 @@ function AlimentacaoPage() {
           duration: 4000,
         });
         if (typeof window !== "undefined") {
-          import("canvas-confetti").then(({ default: confetti }) => {
-            confetti({
-              particleCount: 60,
-              spread: 70,
-              origin: { y: 0.3 },
-              colors: ["#38bdf8", "#0ea5e9", "#7dd3fc"],
-            });
-          }).catch(() => {});
+          import("canvas-confetti")
+            .then(({ default: confetti }) => {
+              confetti({
+                particleCount: 60,
+                spread: 70,
+                origin: { y: 0.3 },
+                colors: ["#38bdf8", "#0ea5e9", "#7dd3fc"],
+              });
+            })
+            .catch(() => {});
         }
       }
       return { prev };
@@ -100,10 +112,7 @@ function AlimentacaoPage() {
       if (ctx?.prev !== undefined) qc.setQueryData(hydroKey, ctx.prev);
       toast.error("Não foi possível salvar a hidratação.");
     },
-
   });
-
-
 
   // Objetivo
   const metaKey = ["metas_usuario", user?.id];
@@ -151,23 +160,27 @@ function AlimentacaoPage() {
       const antesKcal = kcalFor(antigo);
       const depoisKcal = kcalFor(novo);
       const delta = depoisKcal - antesKcal;
-      const deltaTxt = delta === 0 ? "Meta calórica mantida" : `Meta: ${antesKcal} → ${depoisKcal} kcal (${delta > 0 ? "+" : ""}${delta})`;
+      const deltaTxt =
+        delta === 0
+          ? "Meta calórica mantida"
+          : `Meta: ${antesKcal} → ${depoisKcal} kcal (${delta > 0 ? "+" : ""}${delta})`;
       const titulo =
-        novo === "ganho" ? "Modo ganho ativado 💪" :
-        novo === "reeducacao" ? "Modo reeducação ativado 🌱" :
-        "Modo perda ativado 🔥";
+        novo === "ganho"
+          ? "Modo ganho ativado 💪"
+          : novo === "reeducacao"
+            ? "Modo reeducação ativado 🌱"
+            : "Modo perda ativado 🔥";
       toast.success(titulo, { description: deltaTxt, duration: 4000 });
     },
   });
 
-
   const macros = useMemo(() => {
     const split =
       objetivo === "perda"
-        ? { p: 0.35, c: 0.35, g: 0.30 }
+        ? { p: 0.35, c: 0.35, g: 0.3 }
         : objetivo === "ganho"
-          ? { p: 0.30, c: 0.50, g: 0.20 }
-          : { p: 0.25, c: 0.50, g: 0.25 };
+          ? { p: 0.3, c: 0.5, g: 0.2 }
+          : { p: 0.25, c: 0.5, g: 0.25 };
     return {
       prot: Math.round((metaKcal * split.p) / 4),
       carb: Math.round((metaKcal * split.c) / 4),
@@ -177,12 +190,31 @@ function AlimentacaoPage() {
 
   const accent =
     objetivo === "ganho"
-      ? { text: "text-accent", border: "border-accent/30", bgInner: "bg-accent/10 border-accent/30", textStrong: "text-accent", gradient: "from-accent/10 via-primary/5 to-transparent" }
+      ? {
+          text: "text-accent",
+          border: "border-accent/30",
+          bgInner: "bg-accent/10 border-accent/30",
+          textStrong: "text-accent",
+          gradient: "from-accent/10 via-primary/5 to-transparent",
+        }
       : objetivo === "reeducacao"
-        ? { text: "text-primary", border: "border-primary/30", bgInner: "bg-primary/10 border-primary/30", textStrong: "text-primary", gradient: "from-primary/10 via-accent/5 to-transparent" }
-        : { text: "text-primary", border: "border-primary/40", bgInner: "bg-primary/10 border-primary/40", textStrong: "text-gradient-ember", gradient: "from-primary/15 via-accent/5 to-transparent" };
+        ? {
+            text: "text-primary",
+            border: "border-primary/30",
+            bgInner: "bg-primary/10 border-primary/30",
+            textStrong: "text-primary",
+            gradient: "from-primary/10 via-accent/5 to-transparent",
+          }
+        : {
+            text: "text-primary",
+            border: "border-primary/40",
+            bgInner: "bg-primary/10 border-primary/40",
+            textStrong: "text-gradient-ember",
+            gradient: "from-primary/15 via-accent/5 to-transparent",
+          };
 
-  const objetivoLabel = objetivo === "perda" ? "Déficit" : objetivo === "ganho" ? "Superávit" : "Equilíbrio";
+  const objetivoLabel =
+    objetivo === "perda" ? "Déficit" : objetivo === "ganho" ? "Superávit" : "Equilíbrio";
 
   // Prefill bridge: CardapioSugerido → MinhaAlimentacao
   const [prefill, setPrefill] = useState<PrefillRefeicao | null>(null);
@@ -202,7 +234,6 @@ function AlimentacaoPage() {
       {/* Protocolo prescrito pelo admin (se houver) */}
       {user?.id && <CardapioPrescrito userId={user.id} />}
 
-
       {/* Hydration */}
       <section className="glass rounded-2xl p-4 border border-border/40">
         <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
@@ -211,7 +242,8 @@ function AlimentacaoPage() {
             <span className="font-semibold">Hidratação</span>
           </div>
           <span className="text-sm text-muted-foreground">
-            {copos}/{metaCopos} copos · {((copos * ML_POR_COPO) / 1000).toFixed(2)}L de {metaLitros.toFixed(2)}L
+            {copos}/{metaCopos} copos · {((copos * ML_POR_COPO) / 1000).toFixed(2)}L de{" "}
+            {metaLitros.toFixed(2)}L
           </span>
         </div>
         <p className="text-xs text-muted-foreground mb-3">
@@ -275,37 +307,38 @@ function AlimentacaoPage() {
             })}
           </div>
         )}
-
-
       </section>
-
 
       {/* Objective Toggle (3 options) */}
       <section className="glass rounded-2xl p-2 border border-border/40">
         <div className="grid grid-cols-3 gap-1.5">
-          {([
-            {
-              key: "perda",
-              label: "Perda",
-              Icon: TrendingDown,
-              activeCls: "bg-gradient-to-br from-rose-500 to-red-700 text-white border-rose-400 shadow-[0_0_20px_-4px_rgba(244,63,94,0.6)]",
-              idleCls: "text-rose-300/80 hover:text-rose-200 hover:border-rose-500/50",
-            },
-            {
-              key: "reeducacao",
-              label: "Reeducação",
-              Icon: Leaf,
-              activeCls: "bg-gradient-to-br from-emerald-500 to-green-700 text-white border-emerald-400 shadow-[0_0_20px_-4px_rgba(16,185,129,0.6)]",
-              idleCls: "text-emerald-300/80 hover:text-emerald-200 hover:border-emerald-500/50",
-            },
-            {
-              key: "ganho",
-              label: "Ganho",
-              Icon: TrendingUp,
-              activeCls: "bg-gradient-ember text-primary-foreground border-primary shadow-ember",
-              idleCls: "text-orange-300/80 hover:text-orange-200 hover:border-primary/50",
-            },
-          ] as const).map(({ key, label, Icon, activeCls, idleCls }) => {
+          {(
+            [
+              {
+                key: "perda",
+                label: "Perda",
+                Icon: TrendingDown,
+                activeCls:
+                  "bg-gradient-to-br from-rose-500 to-red-700 text-white border-rose-400 shadow-[0_0_20px_-4px_rgba(244,63,94,0.6)]",
+                idleCls: "text-rose-300/80 hover:text-rose-200 hover:border-rose-500/50",
+              },
+              {
+                key: "reeducacao",
+                label: "Reeducação",
+                Icon: Leaf,
+                activeCls:
+                  "bg-gradient-to-br from-emerald-500 to-green-700 text-white border-emerald-400 shadow-[0_0_20px_-4px_rgba(16,185,129,0.6)]",
+                idleCls: "text-emerald-300/80 hover:text-emerald-200 hover:border-emerald-500/50",
+              },
+              {
+                key: "ganho",
+                label: "Ganho",
+                Icon: TrendingUp,
+                activeCls: "bg-gradient-ember text-primary-foreground border-primary shadow-ember",
+                idleCls: "text-orange-300/80 hover:text-orange-200 hover:border-primary/50",
+              },
+            ] as const
+          ).map(({ key, label, Icon, activeCls, idleCls }) => {
             const active = objetivo === key;
             return (
               <button
@@ -326,9 +359,6 @@ function AlimentacaoPage() {
         </div>
       </section>
 
-
-
-
       {/* Nutritional Goals Card */}
       <section
         key={objetivo}
@@ -344,9 +374,15 @@ function AlimentacaoPage() {
           </span>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div className={`rounded-xl border p-3 col-span-2 transition-colors duration-500 ${accent.bgInner}`}>
-            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Calorias diárias</div>
-            <div className={`text-2xl font-bold mt-1 transition-colors duration-500 ${accent.textStrong}`}>
+          <div
+            className={`rounded-xl border p-3 col-span-2 transition-colors duration-500 ${accent.bgInner}`}
+          >
+            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              Calorias diárias
+            </div>
+            <div
+              className={`text-2xl font-bold mt-1 transition-colors duration-500 ${accent.textStrong}`}
+            >
               {metaKcal} <span className="text-sm text-muted-foreground font-normal">kcal</span>
             </div>
           </div>
@@ -378,6 +414,9 @@ function AlimentacaoPage() {
           </p>
         )}
       </section>
+
+      {/* Photo meal registration (Fase 5) */}
+      <RegistrarFotoRefeicao />
 
       {/* Progress + Register + History */}
       <MinhaAlimentacao

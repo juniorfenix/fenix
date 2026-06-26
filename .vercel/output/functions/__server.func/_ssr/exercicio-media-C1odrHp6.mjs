@@ -1,5 +1,5 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { aj as Image } from "../_libs/lucide-react.mjs";
+import { af as Image } from "../_libs/lucide-react.mjs";
 function isVideoUrl(url) {
   return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url);
 }
