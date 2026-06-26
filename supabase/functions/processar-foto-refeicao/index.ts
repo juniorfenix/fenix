@@ -161,15 +161,20 @@ Retorne EXCLUSIVAMENTE um JSON válido, sem markdown, sem explicações, com est
   const json = await resposta.json();
   const conteudo: string = json?.choices?.[0]?.message?.content ?? "";
 
+  // Detecta recusa do modelo antes de tentar parsear JSON
+  const jsonLimpo = conteudo.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+  if (!jsonLimpo.startsWith("{")) {
+    throw new Error(
+      "Não foi possível identificar alimentos nesta imagem. " +
+      "Tente uma foto mais nítida, com boa iluminação e o prato centralizado.",
+    );
+  }
+
   let analise: RespostaVisao;
   try {
-    const jsonLimpo = conteudo
-      .replace(/```json\s*/g, "")
-      .replace(/```\s*/g, "")
-      .trim();
     analise = JSON.parse(jsonLimpo);
   } catch {
-    throw new Error(`Resposta da IA não é JSON válido: ${conteudo.slice(0, 200)}`);
+    throw new Error("Resposta inesperada da IA. Tente novamente com outra foto.");
   }
 
   if (!Array.isArray(analise?.alimentos)) {
@@ -292,7 +297,10 @@ Deno.serve(async (req: Request) => {
   const MIME_SUPORTADOS = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
   if (!MIME_SUPORTADOS.has(mimeType)) {
     return jsonResponse(
-      { success: false, error: `Formato "${mimeType}" não suportado. Envie a foto em JPEG, PNG ou WebP.` },
+      {
+        success: false,
+        error: `Formato "${mimeType}" não suportado. Envie a foto em JPEG, PNG ou WebP.`,
+      },
       200,
     );
   }
