@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx eslint *)",
+      "Bash(/home/hemersoncoelho/.bun/bin/bun run *)",
+      "mcp__supabase__list_organizations",
+      "Bash(grep -l \"registrar-foto-refeicao\\\\|RegistrarFotoRefeicao\" src/routes/)",
+      "Bash(grep -rl \"registrar-foto\\\\|foto-refeicao\\\\|HistoricoRefeicoes\" src/routes/ src/components/)"
+    ]
+  }
+}

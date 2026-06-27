@@ -169,9 +169,7 @@ function ProfileProfissional() {
       {/* Conta */}
       <section className="mt-8">
         <div className="flex items-center gap-2 mb-3">
-          <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
-            Conta
-          </h2>
+          <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Conta</h2>
         </div>
         <div className="glass rounded-2xl px-4 py-3">
           <div className="flex justify-between text-sm">
@@ -355,8 +353,8 @@ function ProfileAluno() {
       );
       setEditOpen(false);
       load();
-    } catch (e: any) {
-      toast.error(e.message ?? "Erro ao salvar");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao salvar");
     } finally {
       setSaving(false);
     }

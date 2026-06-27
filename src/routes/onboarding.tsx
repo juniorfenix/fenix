@@ -1,9 +1,24 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect, useMemo } from "react";
 import {
-  Flame, ArrowRight, ArrowLeft, Check, Sparkles, Search,
-  Apple, Drumstick, Wheat, Milk, Salad, Soup, Zap, ChefHat, Leaf,
-  Ban, X,
+  Flame,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Sparkles,
+  Search,
+  Apple,
+  Drumstick,
+  Wheat,
+  Milk,
+  Salad,
+  Soup,
+  Zap,
+  ChefHat,
+  Leaf,
+  Ban,
+  X,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +34,12 @@ export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
 });
 
+type TipoConta = "aluno" | "profissional" | "";
+type Especialidade = "instrutor" | "nutricionista" | "";
+
 type Form = {
+  tipo_conta: TipoConta;
+  especialidade: Especialidade;
   current_weight: string;
   goal_weight: string;
   height: string;
@@ -31,12 +51,29 @@ type Form = {
   tem_restricao: boolean | null;
   restricao_descricao: string;
   objetivo_fenix: "emagrecer" | "ganhar_musculo" | "condicionamento" | "";
-  // Preferências alimentares
   essenciais: string[];
   detestados: string[];
   estilo_refeicao: "caseira" | "pratica" | "gourmet" | "saudavel" | "";
   restricoes_alimentares: string[];
 };
+
+const STEPS_ALUNO = [
+  "tipo_conta",
+  "dados",
+  "objetivo_peso",
+  "atividade",
+  "objetivo_fenix",
+  "favorito",
+  "evitar",
+  "restricao",
+  "essenciais",
+  "detestados",
+  "estilo",
+  "restricoes_alim",
+  "pronto",
+] as const;
+
+const STEPS_PROF = ["tipo_conta", "especialidade", "pronto"] as const;
 
 const ESSENCIAIS: { key: string; label: string; Icon: typeof Apple }[] = [
   { key: "Frutas", label: "Frutas", Icon: Apple },
@@ -53,13 +90,7 @@ const ESTILOS: { key: Form["estilo_refeicao"]; label: string; sub: string; Icon:
   { key: "saudavel", label: "Saudável", sub: "Foco em nutrição limpa", Icon: Leaf },
 ];
 
-const RESTRICOES_ALIM = [
-  "Sem glúten",
-  "Sem lactose",
-  "Vegano",
-  "Vegetariano",
-  "Nenhuma",
-];
+const RESTRICOES_ALIM = ["Sem glúten", "Sem lactose", "Vegano", "Vegetariano", "Nenhuma"];
 
 const FAVORITOS = [
   "Arroz e feijão",
@@ -107,17 +138,18 @@ const dadosSchema = z.object({
 type DadosErrors = Partial<Record<keyof typeof dadosSchema.shape, string>>;
 
 const ENCOURAGE: Record<number, string> = {
-  0: "Perfeito, estamos moldando sua fênix.",
+  0: "Ótimo! Vamos personalizar sua jornada.",
   1: "Excelente. Cada detalhe importa.",
   2: "Ótimo. Vamos respeitar o seu corpo.",
   3: "Isso é muito importante para sua evolução.",
-  4: "Sabendo o que você ama, fica mais fácil.",
-  5: "Anotado. Sua dieta vai respeitar isso.",
-  6: "Cuidar de você é prioridade. Anotado.",
-  7: "Agora sim. O caminho está claro.",
-  8: "Suas escolhas vão guiar seu cardápio.",
-  9: "Combinou com seu estilo. Vamos adiante.",
-  10: "Pronto. Sua fênix está se formando.",
+  4: "Isso vai guiar todo o seu protocolo.",
+  5: "Sabendo o que você ama, fica mais fácil.",
+  6: "Anotado. Sua dieta vai respeitar isso.",
+  7: "Cuidar de você é prioridade. Anotado.",
+  8: "Agora sim. O caminho está claro.",
+  9: "Suas escolhas vão guiar seu cardápio.",
+  10: "Combinou com seu estilo. Vamos adiante.",
+  11: "Pronto. Sua fênix está se formando.",
 };
 
 function Onboarding() {
@@ -130,6 +162,8 @@ function Onboarding() {
   const [prepStage, setPrepStage] = useState(0);
   const [showEncourage, setShowEncourage] = useState(false);
   const [form, setForm] = useState<Form>({
+    tipo_conta: "",
+    especialidade: "",
     current_weight: "",
     goal_weight: "",
     height: "",
@@ -158,32 +192,34 @@ function Onboarding() {
   };
 
   const mountedRef = useRef(true);
-  useEffect(() => () => { mountedRef.current = false; }, []);
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    [],
+  );
 
-  // Build the list of steps; each is a screen with a question.
-  const steps = useMemo(() => [
-    "dados",
-    "objetivo_peso",
-    "atividade",
-    "objetivo_fenix",
-    "favorito",
-    "evitar",
-    "restricao",
-    "essenciais",
-    "detestados",
-    "estilo",
-    "restricoes_alim",
-    "pronto",
-  ] as const, []);
+  const steps = useMemo(
+    () => (form.tipo_conta === "profissional" ? STEPS_PROF : STEPS_ALUNO),
+    [form.tipo_conta],
+  );
 
   const total = steps.length;
-  const current = steps[step];
+  const current = steps[step] as string;
 
   const canNext = (() => {
     switch (current) {
+      case "tipo_conta":
+        return !!form.tipo_conta;
+      case "especialidade":
+        return !!form.especialidade;
       case "dados":
-        return !!(form.current_weight && form.height && form.age) &&
-          !dadosErrors.current_weight && !dadosErrors.height && !dadosErrors.age;
+        return (
+          !!(form.current_weight && form.height && form.age) &&
+          !dadosErrors.current_weight &&
+          !dadosErrors.height &&
+          !dadosErrors.age
+        );
       case "objetivo_peso":
         return !!form.goal_weight && !dadosErrors.goal_weight;
       case "atividade":
@@ -201,7 +237,7 @@ function Onboarding() {
       case "essenciais":
         return form.essenciais.length > 0;
       case "detestados":
-        return true; // pode pular sem marcar nada
+        return true;
       case "estilo":
         return !!form.estilo_refeicao;
       case "restricoes_alim":
@@ -227,8 +263,65 @@ function Onboarding() {
     setStep((s) => Math.max(0, s - 1));
   };
 
+  const finishProfissional = async () => {
+    if (!user || !form.especialidade) return;
+    setBusy(true);
+    setPreparing(true);
+    let i = 0;
+    const tick = setInterval(() => {
+      if (!mountedRef.current) return;
+      i = Math.min(i + 1, 2);
+      setPrepStage(i);
+    }, 700);
+    try {
+      const { error: perfilError } = await supabase
+        .from("perfis")
+        .update({ papel: form.especialidade })
+        .eq("id", user.id);
+      if (perfilError) throw perfilError;
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ onboarding_complete: true })
+        .eq("id", user.id);
+      if (profileError) throw profileError;
+
+      await new Promise((r) => setTimeout(r, 2100));
+      clearInterval(tick);
+      if (!mountedRef.current) return;
+
+      queryClient.setQueryData(["perfil", user.id], (old: Record<string, unknown> | undefined) => ({
+        ...(old ?? {}),
+        papel: form.especialidade,
+      }));
+      queryClient.setQueryData(
+        ["profile", user.id],
+        (old: Record<string, unknown> | undefined) => ({
+          ...(old ?? {}),
+          onboarding_complete: true,
+        }),
+      );
+      queryClient.invalidateQueries({ queryKey: ["perfil", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+
+      toast.success("Perfil profissional ativado. Bem-vindo!");
+      navigate({ to: "/app" });
+    } catch (e: unknown) {
+      clearInterval(tick);
+      if (!mountedRef.current) return;
+      setPreparing(false);
+      toast.error(e instanceof Error ? e.message : "Erro ao salvar perfil");
+    } finally {
+      if (mountedRef.current) setBusy(false);
+    }
+  };
+
   const finish = async () => {
     if (!user) return;
+    if (form.tipo_conta === "profissional") {
+      await finishProfissional();
+      return;
+    }
     const w = parseFloat(form.current_weight);
     const gw = parseFloat(form.goal_weight);
     const h = parseFloat(form.height);
@@ -251,50 +344,57 @@ function Onboarding() {
     }
     setBusy(true);
     setPreparing(true);
-    const stages = [
-      "Analisando seu perfil metabólico…",
-      "Calculando sua meta calórica…",
-      "Montando seu plano Fênix…",
-      "Tudo pronto. Renascendo.",
-    ];
     let i = 0;
     const tick = setInterval(() => {
       if (!mountedRef.current) return;
-      i = Math.min(i + 1, stages.length - 1);
+      i = Math.min(i + 1, 3);
       setPrepStage(i);
     }, 800);
     try {
       const calories = calculateDailyCalories({
-        weight: w, height: h, age: a,
-        gender: form.gender, activity: form.activity,
-        goal: form.objetivo_fenix === "emagrecer" ? "lose"
-            : form.objetivo_fenix === "ganhar_musculo" ? "gain"
-            : "maintain",
-      });
-      const { error } = await supabase.from("profiles").update({
-        current_weight: w,
-        goal_weight: gw,
+        weight: w,
         height: h,
         age: a,
         gender: form.gender,
-        activity_level: form.activity,
-        daily_calorie_goal: calories,
-        onboarding_complete: true,
-        alimento_favorito: form.alimento_favorito,
-        alimentos_evitar: form.alimentos_evitar,
-        tem_restricao: form.tem_restricao ?? false,
-        restricao_descricao: form.tem_restricao ? form.restricao_descricao.trim() : null,
-        objetivo_fenix: form.objetivo_fenix,
-      }).eq("id", user.id);
+        activity: form.activity,
+        goal:
+          form.objetivo_fenix === "emagrecer"
+            ? "lose"
+            : form.objetivo_fenix === "ganhar_musculo"
+              ? "gain"
+              : "maintain",
+      });
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          current_weight: w,
+          goal_weight: gw,
+          height: h,
+          age: a,
+          gender: form.gender,
+          activity_level: form.activity,
+          daily_calorie_goal: calories,
+          onboarding_complete: true,
+          alimento_favorito: form.alimento_favorito,
+          alimentos_evitar: form.alimentos_evitar,
+          tem_restricao: form.tem_restricao ?? false,
+          restricao_descricao: form.tem_restricao ? form.restricao_descricao.trim() : null,
+          objetivo_fenix: form.objetivo_fenix,
+        })
+        .eq("id", user.id);
       if (error) throw error;
-      await supabase.from("weight_logs").upsert(
-        { user_id: user.id, weight: w, logged_date: todayISO() },
-        { onConflict: "user_id,logged_date" },
-      );
-      await supabase.from("badges").upsert(
-        { user_id: user.id, badge_type: "first_log" },
-        { onConflict: "user_id,badge_type" },
-      );
+      await supabase
+        .from("weight_logs")
+        .upsert(
+          { user_id: user.id, weight: w, logged_date: todayISO() },
+          { onConflict: "user_id,logged_date" },
+        );
+      await supabase
+        .from("badges")
+        .upsert(
+          { user_id: user.id, badge_type: "first_log" },
+          { onConflict: "user_id,badge_type" },
+        );
       await supabase.from("preferencias_alimentares").upsert(
         {
           user_id: user.id,
@@ -308,55 +408,82 @@ function Onboarding() {
       await new Promise((r) => setTimeout(r, 3200));
       clearInterval(tick);
       if (!mountedRef.current) return;
-      queryClient.setQueryData(["profile", user.id], (old: any) => ({
-        ...(old ?? {}),
-        current_weight: w, goal_weight: gw, height: h, age: a,
-        gender: form.gender, activity_level: form.activity,
-        daily_calorie_goal: calories,
-        onboarding_complete: true,
-        has_seen_welcome: old?.has_seen_welcome ?? false,
-        display_name: old?.display_name ?? null,
-      }));
+      queryClient.setQueryData(
+        ["profile", user.id],
+        (old: Record<string, unknown> | undefined) => ({
+          ...(old ?? {}),
+          current_weight: w,
+          goal_weight: gw,
+          height: h,
+          age: a,
+          gender: form.gender,
+          activity_level: form.activity,
+          daily_calorie_goal: calories,
+          onboarding_complete: true,
+          has_seen_welcome: (old?.has_seen_welcome as boolean | undefined) ?? false,
+          display_name: old?.display_name ?? null,
+        }),
+      );
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
       toast.success("Sua jornada começa agora.");
       navigate({ to: "/app" });
-    } catch (e: any) {
+    } catch (e: unknown) {
       clearInterval(tick);
       if (!mountedRef.current) return;
       setPreparing(false);
-      toast.error(e.message ?? "Erro");
+      toast.error(e instanceof Error ? e.message : "Erro");
     } finally {
       if (mountedRef.current) setBusy(false);
     }
   };
 
   if (preparing) {
-    const stages = [
-      "Analisando seu perfil metabólico…",
-      "Calculando sua meta calórica…",
-      "Montando seu plano Fênix…",
-      "Tudo pronto. Renascendo.",
-    ];
+    const isProfissionalPrep = form.tipo_conta === "profissional";
+    const stages = isProfissionalPrep
+      ? ["Ativando seu perfil profissional…", "Configurando seu painel…", "Tudo pronto. Bem-vindo!"]
+      : [
+          "Analisando seu perfil metabólico…",
+          "Calculando sua meta calórica…",
+          "Montando seu plano Fênix…",
+          "Tudo pronto. Renascendo.",
+        ];
     return (
       <main className="min-h-screen bg-background px-6 py-10 grid place-items-center">
         <div className="mx-auto max-w-md w-full text-center">
           <div className="mx-auto h-20 w-20 rounded-full bg-gradient-ember grid place-items-center shadow-ember animate-pop">
-            <Flame className="h-9 w-9 text-primary-foreground" strokeWidth={2} />
+            {isProfissionalPrep ? (
+              <Users className="h-9 w-9 text-primary-foreground" strokeWidth={2} />
+            ) : (
+              <Flame className="h-9 w-9 text-primary-foreground" strokeWidth={2} />
+            )}
           </div>
-          <h2 className="mt-8 text-3xl">Preparando seu plano</h2>
+          <h2 className="mt-8 text-3xl">
+            {isProfissionalPrep ? "Ativando seu perfil" : "Preparando seu plano"}
+          </h2>
           <p className="mt-2 text-sm text-muted-foreground min-h-[2.5rem] transition-all">
             {stages[prepStage]}
           </p>
           <div className="mt-8 h-2 overflow-hidden rounded-full bg-secondary">
             <div className="h-full bg-gradient-ember animate-loading-bar" />
           </div>
-          <p className="mt-6 text-xs uppercase tracking-widest text-muted-foreground">Método Fênix</p>
+          <p className="mt-6 text-xs uppercase tracking-widest text-muted-foreground">
+            Método Fênix
+          </p>
         </div>
       </main>
     );
   }
 
   const progress = ((step + 1) / total) * 100;
+  const isLastStep = step === total - 1;
+  const finalLabel =
+    form.tipo_conta === "profissional"
+      ? busy
+        ? "Ativando…"
+        : "Ativar perfil profissional"
+      : busy
+        ? "Salvando…"
+        : "Renascer agora";
 
   return (
     <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,rgba(255,90,30,0.12),transparent_60%)] bg-background text-foreground">
@@ -404,16 +531,12 @@ function Onboarding() {
         {/* Footer actions */}
         <div className="flex gap-3 pb-2">
           {step > 0 && !showEncourage && (
-            <Button
-              variant="outline"
-              onClick={goBack}
-              className="h-14 flex-1 text-base"
-            >
+            <Button variant="outline" onClick={goBack} className="h-14 flex-1 text-base">
               <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
             </Button>
           )}
-          {!showEncourage && (
-            step < total - 1 ? (
+          {!showEncourage &&
+            (!isLastStep ? (
               <Button
                 onClick={goNext}
                 disabled={!canNext}
@@ -427,10 +550,9 @@ function Onboarding() {
                 disabled={busy}
                 className="h-14 flex-[2] text-base bg-gradient-ember text-primary-foreground shadow-ember"
               >
-                {busy ? "Salvando…" : "Renascer agora"}
+                {finalLabel}
               </Button>
-            )
-          )}
+            ))}
         </div>
       </div>
     </main>
@@ -452,6 +574,60 @@ function StepScreen({
   dadosErrors?: DadosErrors;
   validateDados?: (field: keyof DadosErrors, value: string) => void;
 }) {
+  if (step === "tipo_conta") {
+    return (
+      <div>
+        <h1 className="font-display text-3xl leading-tight sm:text-4xl">
+          Como você vai usar o Fênix?
+        </h1>
+        <p className="mt-3 text-base text-muted-foreground">
+          Escolha seu perfil para personalizarmos sua experiência.
+        </p>
+        <div className="mt-8 space-y-3">
+          <BigChoice
+            selected={form.tipo_conta === "aluno"}
+            onClick={() => set("tipo_conta", "aluno")}
+            title="Sou aluno"
+            subtitle="Quero emagrecer, ganhar músculo ou melhorar minha saúde"
+          />
+          <BigChoice
+            selected={form.tipo_conta === "profissional"}
+            onClick={() => set("tipo_conta", "profissional")}
+            title="Sou profissional"
+            subtitle="Sou instrutor, nutricionista ou profissional da saúde"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "especialidade") {
+    return (
+      <div>
+        <h1 className="font-display text-3xl leading-tight sm:text-4xl">
+          Qual é a sua especialidade?
+        </h1>
+        <p className="mt-3 text-base text-muted-foreground">
+          Isso define as ferramentas que você terá acesso no painel.
+        </p>
+        <div className="mt-8 space-y-3">
+          <BigChoice
+            selected={form.especialidade === "instrutor"}
+            onClick={() => set("especialidade", "instrutor")}
+            title="Instrutor de treino"
+            subtitle="Crio planos de treino e acompanho alunos no exercício"
+          />
+          <BigChoice
+            selected={form.especialidade === "nutricionista"}
+            onClick={() => set("especialidade", "nutricionista")}
+            title="Nutricionista"
+            subtitle="Crio planos alimentares e acompanho a dieta dos pacientes"
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (step === "dados") {
     return (
       <div>
@@ -465,7 +641,10 @@ function StepScreen({
           <BigField
             label="Peso (kg)"
             value={form.current_weight}
-            onChange={(v) => { set("current_weight", v); validateDados?.("current_weight", v); }}
+            onChange={(v) => {
+              set("current_weight", v);
+              validateDados?.("current_weight", v);
+            }}
             type="number"
             max={300}
             error={dadosErrors?.current_weight}
@@ -473,7 +652,10 @@ function StepScreen({
           <BigField
             label="Altura (cm)"
             value={form.height}
-            onChange={(v) => { set("height", v); validateDados?.("height", v); }}
+            onChange={(v) => {
+              set("height", v);
+              validateDados?.("height", v);
+            }}
             type="number"
             max={250}
             error={dadosErrors?.height}
@@ -481,7 +663,10 @@ function StepScreen({
           <BigField
             label="Idade"
             value={form.age}
-            onChange={(v) => { set("age", v); validateDados?.("age", v); }}
+            onChange={(v) => {
+              set("age", v);
+              validateDados?.("age", v);
+            }}
             type="number"
             max={120}
             error={dadosErrors?.age}
@@ -523,7 +708,10 @@ function StepScreen({
           <BigField
             label="Peso desejado (kg)"
             value={form.goal_weight}
-            onChange={(v) => { set("goal_weight", v); validateDados?.("goal_weight", v); }}
+            onChange={(v) => {
+              set("goal_weight", v);
+              validateDados?.("goal_weight", v);
+            }}
             type="number"
             max={300}
             error={dadosErrors?.goal_weight}
@@ -537,20 +725,20 @@ function StepScreen({
   if (step === "atividade") {
     return (
       <div>
-        <h1 className="font-display text-3xl leading-tight sm:text-4xl">
-          Como é sua rotina hoje?
-        </h1>
+        <h1 className="font-display text-3xl leading-tight sm:text-4xl">Como é sua rotina hoje?</h1>
         <p className="mt-3 text-base text-muted-foreground">
           Quanto você se move durante a semana?
         </p>
         <div className="mt-8 space-y-2">
-          {([
-            ["sedentary", "Sedentário", "Pouco ou nenhum exercício"],
-            ["light", "Leve", "1 a 3x por semana"],
-            ["moderate", "Moderado", "3 a 5x por semana"],
-            ["active", "Ativo", "6 a 7x por semana"],
-            ["very_active", "Muito ativo", "Treino intenso diário"],
-          ] as const).map(([k, t, d]) => (
+          {(
+            [
+              ["sedentary", "Sedentário", "Pouco ou nenhum exercício"],
+              ["light", "Leve", "1 a 3x por semana"],
+              ["moderate", "Moderado", "3 a 5x por semana"],
+              ["active", "Ativo", "6 a 7x por semana"],
+              ["very_active", "Muito ativo", "Treino intenso diário"],
+            ] as const
+          ).map(([k, t, d]) => (
             <BigChoice
               key={k}
               selected={form.activity === k}
@@ -574,11 +762,13 @@ function StepScreen({
           Escolha o foco principal da sua fênix.
         </p>
         <div className="mt-8 space-y-2">
-          {([
-            ["emagrecer", "Emagrecer", "Perder gordura e ganhar leveza"],
-            ["ganhar_musculo", "Ganhar Músculo", "Hipertrofia e força"],
-            ["condicionamento", "Condicionamento", "Saúde, energia e disposição"],
-          ] as const).map(([k, t, d]) => (
+          {(
+            [
+              ["emagrecer", "Emagrecer", "Perder gordura e ganhar leveza"],
+              ["ganhar_musculo", "Ganhar Músculo", "Hipertrofia e força"],
+              ["condicionamento", "Condicionamento", "Saúde, energia e disposição"],
+            ] as const
+          ).map(([k, t, d]) => (
             <BigChoice
               key={k}
               selected={form.objetivo_fenix === k}
@@ -742,7 +932,9 @@ function StepScreen({
               >
                 <div
                   className={`grid h-12 w-12 place-items-center rounded-xl transition ${
-                    active ? "bg-gradient-ember text-primary-foreground" : "bg-secondary text-foreground/70"
+                    active
+                      ? "bg-gradient-ember text-primary-foreground"
+                      : "bg-secondary text-foreground/70"
                   }`}
                 >
                   <Icon className="h-6 w-6" />
@@ -784,7 +976,9 @@ function StepScreen({
               >
                 <div
                   className={`grid h-12 w-12 place-items-center rounded-xl ${
-                    active ? "bg-gradient-ember text-primary-foreground" : "bg-secondary text-foreground/70"
+                    active
+                      ? "bg-gradient-ember text-primary-foreground"
+                      : "bg-secondary text-foreground/70"
                   }`}
                 >
                   <Icon className="h-6 w-6" />
@@ -844,6 +1038,22 @@ function StepScreen({
   }
 
   // pronto
+  if (form.tipo_conta === "profissional") {
+    return (
+      <div className="text-center">
+        <div className="mx-auto h-16 w-16 rounded-full bg-gradient-ember grid place-items-center shadow-ember">
+          <Users className="h-8 w-8 text-primary-foreground" />
+        </div>
+        <h1 className="mt-6 font-display text-3xl leading-tight sm:text-4xl">
+          Seu perfil profissional está pronto.
+        </h1>
+        <p className="mt-3 text-base text-muted-foreground">
+          Você terá acesso ao painel de alunos, planos de treino e acompanhamento personalizado.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="text-center">
       <div className="mx-auto h-16 w-16 rounded-full bg-gradient-ember grid place-items-center shadow-ember">
@@ -853,16 +1063,20 @@ function StepScreen({
         Sua fênix está pronta para renascer.
       </h1>
       <p className="mt-3 text-base text-muted-foreground">
-        Baseado nas suas escolhas, seu protocolo Fênix será exclusivo e
-        pensado exatamente para o seu paladar.
+        Baseado nas suas escolhas, seu protocolo Fênix será exclusivo e pensado exatamente para o
+        seu paladar.
       </p>
     </div>
   );
 }
 
 function DetestadosStep({
-  form, set,
-}: { form: Form; set: <K extends keyof Form>(k: K, v: Form[K]) => void }) {
+  form,
+  set,
+}: {
+  form: Form;
+  set: <K extends keyof Form>(k: K, v: Form[K]) => void;
+}) {
   const [q, setQ] = useState("");
   const { data: alimentos } = useQuery<{ id: string; nome: string }[]>({
     queryKey: ["alimentos_padrao_onboarding"],
@@ -880,9 +1094,9 @@ function DetestadosStep({
   });
 
   const term = q.trim().toLowerCase();
-  const filtered = (alimentos ?? []).filter((a) =>
-    term ? a.nome.toLowerCase().includes(term) : true,
-  ).slice(0, 60);
+  const filtered = (alimentos ?? [])
+    .filter((a) => (term ? a.nome.toLowerCase().includes(term) : true))
+    .slice(0, 60);
 
   const toggle = (nome: string) => {
     const has = form.detestados.includes(nome);
@@ -942,7 +1156,11 @@ function DetestadosStep({
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      {active ? <Ban className="h-4 w-4" /> : <Apple className="h-4 w-4 text-muted-foreground" />}
+                      {active ? (
+                        <Ban className="h-4 w-4" />
+                      ) : (
+                        <Apple className="h-4 w-4 text-muted-foreground" />
+                      )}
                       {a.nome}
                     </span>
                     {active && <Check className="h-4 w-4" />}
@@ -958,7 +1176,13 @@ function DetestadosStep({
 }
 
 function BigField({
-  label, value, onChange, type = "text", onEnter, error, max,
+  label,
+  value,
+  onChange,
+  type = "text",
+  onEnter,
+  error,
+  max,
 }: {
   label: string;
   value: string;
@@ -996,8 +1220,16 @@ function BigField({
 }
 
 function BigChoice({
-  selected, onClick, title, subtitle,
-}: { selected: boolean; onClick: () => void; title: string; subtitle: string }) {
+  selected,
+  onClick,
+  title,
+  subtitle,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  title: string;
+  subtitle: string;
+}) {
   return (
     <button
       type="button"
