@@ -423,93 +423,9 @@ function PlanoAlimentarView({ plano, alunoId }: { plano: PlanoAlimentarRow; alun
 }
 
 function MeuPlanoPage() {
-  const { user } = useAuth();
-  const userId = user?.id ?? "";
   const navigate = useNavigate();
-
-  const { data: perfil, isSuccess: perfilReady } = useQuery({
-    ...perfilQuery(userId),
-    enabled: !!userId,
-  });
-
   useEffect(() => {
-    if (!perfilReady) return;
-    if (perfil?.papel !== "aluno") navigate({ to: "/app" });
-  }, [perfilReady, perfil?.papel, navigate]);
-
-  const { data: planosTreino = [], isLoading: loadingTreino } = useQuery({
-    ...planosTreinoAlunoQuery(userId),
-    enabled: !!userId && perfilReady && perfil?.papel === "aluno",
-  });
-
-  const { data: planosAlimentares = [], isLoading: loadingAlimentar } = useQuery({
-    ...planosAlimentaresAlunoQuery(userId),
-    enabled: !!userId && perfilReady && perfil?.papel === "aluno",
-  });
-
-  if (!perfilReady || perfil?.papel !== "aluno") return null;
-
-  return (
-    <main className="mx-auto max-w-md px-5 pt-8 pb-8">
-      <header className="flex items-center gap-3 mb-6">
-        <div className="h-11 w-11 rounded-2xl bg-gradient-ember grid place-items-center shadow-ember">
-          <Dumbbell className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">
-            Prescrito pelo instrutor
-          </div>
-          <h1 className="text-2xl">Meu Plano</h1>
-        </div>
-      </header>
-
-      <Tabs defaultValue="treino">
-        <TabsList className="w-full mb-5">
-          <TabsTrigger value="treino" className="flex-1 gap-1.5">
-            <Dumbbell className="h-4 w-4" /> Treino
-          </TabsTrigger>
-          <TabsTrigger value="alimentar" className="flex-1 gap-1.5">
-            <Utensils className="h-4 w-4" /> Dieta
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="treino" className="space-y-4">
-          {loadingTreino ? (
-            <>
-              <Skeleton className="h-16 rounded-2xl" />
-              <Skeleton className="h-16 rounded-2xl" />
-            </>
-          ) : planosTreino.length === 0 ? (
-            <div className="glass rounded-2xl p-8 text-center space-y-2">
-              <div className="text-3xl">🏋️</div>
-              <div className="text-sm font-medium">Nenhum plano de treino atribuído ainda.</div>
-              <div className="text-xs text-muted-foreground">
-                Aguarde seu instrutor criar seu plano.
-              </div>
-            </div>
-          ) : (
-            planosTreino.map((p) => <PlanoTreinoView key={p.id} plano={p} alunoId={userId} />)
-          )}
-        </TabsContent>
-
-        <TabsContent value="alimentar" className="space-y-4">
-          {loadingAlimentar ? (
-            <Skeleton className="h-32 rounded-2xl" />
-          ) : planosAlimentares.length === 0 ? (
-            <div className="glass rounded-2xl p-8 text-center space-y-2">
-              <div className="text-3xl">🥗</div>
-              <div className="text-sm font-medium">Nenhum plano alimentar atribuído ainda.</div>
-              <div className="text-xs text-muted-foreground">
-                Aguarde seu instrutor criar sua dieta.
-              </div>
-            </div>
-          ) : (
-            planosAlimentares.map((p) => (
-              <PlanoAlimentarView key={p.id} plano={p} alunoId={userId} />
-            ))
-          )}
-        </TabsContent>
-      </Tabs>
-    </main>
-  );
+    navigate({ to: "/app/treinos", replace: true });
+  }, [navigate]);
+  return null;
 }

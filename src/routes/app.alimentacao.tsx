@@ -11,9 +11,19 @@ import {
   TrendingDown,
   TrendingUp,
   Leaf,
+  CheckCircle2,
+  Circle,
+  Clock,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { profileQuery, perfilQuery } from "@/lib/queries";
+import {
+  profileQuery,
+  perfilQuery,
+  planosAlimentaresAlunoQuery,
+  planoRefeicoesQuery,
+  adesaoAlimentarQuery,
+  type PlanoAlimentarRow,
+} from "@/lib/queries";
 import { MinhaAlimentacao, type PrefillRefeicao } from "@/components/minha-alimentacao";
 import { CardapioSugerido } from "@/components/cardapio-sugerido";
 import { CardapioPrescrito } from "@/components/cardapio-prescrito";
@@ -23,6 +33,153 @@ import { toast } from "sonner";
 import { mapGenero } from "@/lib/profile";
 import { todayISO } from "@/lib/calories";
 import { RegistrarFotoRefeicao } from "@/components/registrar-foto-refeicao";
+
+// ─── Instructor prescribed meal plan card ────────────────────────────────────
+
+function PlanoAlimentarCard({ plano, alunoId }: { plano: PlanoAlimentarRow; alunoId: string }) {
+  const queryClient = useQueryClient();
+  const today = todayISO();
+  const { data: adesoes = [] } = useQuery(adesaoAlimentarQuery(plano.id, alunoId, 30));
+  const { data: refeicoes = [], isLoading: loadingRef } = useQuery(planoRefeicoesQuery(plano.id));
+  const jaSeguiu = adesoes.some((a) => a.data === today);
+
+  const marcar = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("plano_alimentar_adesao").insert({
+        plano_id: plano.id,
+        aluno_id: alunoId,
+        data: today,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adesao-alimentar", plano.id, alunoId] });
+      toast.success("Dieta marcada como seguida hoje! 🥗");
+    },
+    onError: () => toast.error("Erro ao registrar adesão."),
+  });
+
+  const desmarcar = useMutation({
+    mutationFn: async () => {
+      const adesao = adesoes.find((a) => a.data === today);
+      if (!adesao) return;
+      const { error } = await supabase.from("plano_alimentar_adesao").delete().eq("id", adesao.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adesao-alimentar", plano.id, alunoId] });
+      toast.success("Adesão desfeita.");
+    },
+    onError: () => toast.error("Erro ao desfazer adesão."),
+  });
+
+  return (
+    <div className="glass rounded-2xl p-5 space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="font-semibold text-sm">{plano.nome}</h2>
+        {adesoes.length > 0 && (
+          <span className="text-[11px] text-muted-foreground shrink-0">
+            {adesoes.length} dias (30d)
+          </span>
+        )}
+      </div>
+
+      {plano.descricao && (
+        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+          {plano.descricao}
+        </p>
+      )}
+
+      {(plano.meta_kcal || plano.meta_proteinas_g) && (
+        <div className="grid grid-cols-4 gap-2">
+          {plano.meta_kcal && (
+            <div className="rounded-xl bg-primary/5 border border-primary/20 p-2.5 text-center">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">kcal</div>
+              <div className="text-sm font-bold text-primary">{plano.meta_kcal}</div>
+            </div>
+          )}
+          {plano.meta_proteinas_g && (
+            <div className="rounded-xl bg-primary/5 border border-primary/20 p-2.5 text-center">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">prot</div>
+              <div className="text-sm font-bold text-primary">{plano.meta_proteinas_g}g</div>
+            </div>
+          )}
+          {plano.meta_carboidratos_g && (
+            <div className="rounded-xl bg-primary/5 border border-primary/20 p-2.5 text-center">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">carb</div>
+              <div className="text-sm font-bold text-primary">{plano.meta_carboidratos_g}g</div>
+            </div>
+          )}
+          {plano.meta_gorduras_g && (
+            <div className="rounded-xl bg-primary/5 border border-primary/20 p-2.5 text-center">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">gord</div>
+              <div className="text-sm font-bold text-primary">{plano.meta_gorduras_g}g</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="border-t border-border/30 pt-4">
+        <div className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+          Refeições prescritas
+        </div>
+        {loadingRef ? (
+          <div className="h-12 rounded-xl bg-muted/30 animate-pulse" />
+        ) : refeicoes.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border/60 p-4 text-center text-xs text-muted-foreground">
+            Seu profissional ainda não detalhou as refeições deste plano.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {refeicoes.map((item) => (
+              <li key={item.id} className="rounded-xl border border-border bg-card/50 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold">{item.refeicao}</span>
+                  {item.horario && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {item.horario}
+                    </span>
+                  )}
+                  {(item.kcal || item.proteina_g) && (
+                    <span className="text-[10px] text-primary">
+                      {item.kcal ? `${item.kcal} kcal` : ""}
+                      {item.kcal && item.proteina_g ? " · " : ""}
+                      {item.proteina_g ? `${item.proteina_g}g prot` : ""}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
+                  {item.descricao}
+                </p>
+                {item.observacoes && (
+                  <p className="mt-1 text-[11px] text-primary">{item.observacoes}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <button
+        onClick={() => (jaSeguiu ? desmarcar.mutate() : marcar.mutate())}
+        disabled={marcar.isPending || desmarcar.isPending}
+        className={`w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition border ${
+          jaSeguiu
+            ? "bg-primary/10 border-primary/40 text-primary"
+            : "border-border bg-card/40 text-muted-foreground hover:border-primary/40 hover:text-primary"
+        }`}
+      >
+        {jaSeguiu ? (
+          <CheckCircle2 className="h-4 w-4 text-primary" />
+        ) : (
+          <Circle className="h-4 w-4" />
+        )}
+        {jaSeguiu ? "Dieta seguida hoje ✓" : "Marcar dieta como seguida hoje"}
+      </button>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/app/alimentacao")({
   head: () => ({
@@ -77,6 +234,11 @@ function AlimentacaoAluno() {
   const qc = useQueryClient();
   const { data: profile } = useQuery({ ...profileQuery(user?.id ?? ""), enabled: !!user });
   const today = todayISO();
+
+  const { data: planosAlimentares = [], isLoading: loadingPlanosAlimentares } = useQuery({
+    ...planosAlimentaresAlunoQuery(user?.id ?? ""),
+    enabled: !!user?.id,
+  });
 
   // Meta de hidratação dinâmica: peso (kg) * 35ml; copo = 250ml
   const pesoKg = Number(profile?.current_weight) || 0;
@@ -259,6 +421,26 @@ function AlimentacaoAluno() {
           <h1 className="text-2xl">Minha Alimentação</h1>
         </div>
       </header>
+
+      {/* Plano alimentar prescrito pelo instrutor */}
+      {!loadingPlanosAlimentares && planosAlimentares.length > 0 ? (
+        <div className="space-y-3">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground px-1">
+            Plano prescrito pelo profissional
+          </div>
+          {planosAlimentares.map((p) => (
+            <PlanoAlimentarCard key={p.id} plano={p} alunoId={user!.id} />
+          ))}
+        </div>
+      ) : !loadingPlanosAlimentares ? (
+        <div className="glass rounded-2xl p-6 text-center space-y-2 border border-dashed border-border/60">
+          <div className="text-3xl">🥗</div>
+          <div className="text-sm font-medium">Nenhum plano alimentar prescrito ainda</div>
+          <div className="text-xs text-muted-foreground">
+            Assim que seu profissional montar sua dieta, ela aparecerá aqui.
+          </div>
+        </div>
+      ) : null}
 
       {/* Protocolo prescrito pelo admin (se houver) */}
       {user?.id && <CardapioPrescrito userId={user.id} />}

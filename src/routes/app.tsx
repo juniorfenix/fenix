@@ -8,16 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState, memo, useMemo } from "react";
 
-import {
-  Home,
-  BookOpen,
-  Flame,
-  User,
-  Utensils,
-  Dumbbell,
-  Users,
-  Shield,
-} from "lucide-react";
+import { Home, BookOpen, Flame, User, Utensils, Dumbbell, Users, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { profileQuery, perfilQuery } from "@/lib/queries";
