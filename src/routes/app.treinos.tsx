@@ -262,7 +262,7 @@ function PlanoTreinoView({ plano, alunoId }: { plano: PlanoTreinoRow; alunoId: s
       )}
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           {selected && (
             <>
               <DialogHeader>
@@ -276,6 +276,33 @@ function PlanoTreinoView({ plano, alunoId }: { plano: PlanoTreinoRow; alunoId: s
                 alt={selected.exercicio.nome}
                 size="lg"
               />
+              <div className="flex flex-wrap gap-2">
+                {selected.exercicio.grupo_muscular && (
+                  <span className="inline-flex items-center rounded-full border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground capitalize">
+                    {selected.exercicio.grupo_muscular}
+                  </span>
+                )}
+                {selected.exercicio.equipamento && (
+                  <span className="inline-flex items-center rounded-full border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground capitalize">
+                    {selected.exercicio.equipamento}
+                  </span>
+                )}
+                {selected.exercicio.nivel && (
+                  <span className="inline-flex items-center rounded-full border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground capitalize">
+                    {selected.exercicio.nivel}
+                  </span>
+                )}
+              </div>
+              {selected.exercicio.descricao && (
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5">
+                    Como executar
+                  </div>
+                  <p className="text-sm leading-relaxed whitespace-pre-line">
+                    {selected.exercicio.descricao}
+                  </p>
+                </div>
+              )}
               {selected.observacoes && (
                 <div className="rounded-xl border border-primary/40 bg-primary/5 p-3">
                   <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-primary font-semibold mb-1">

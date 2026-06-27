@@ -549,6 +549,9 @@ export type PlanoExercicioRow = {
     gif_url: string | null;
     video_url: string | null;
     tipo_midia: string;
+    descricao: string | null;
+    nivel: string | null;
+    equipamento: string | null;
   };
 };
 
@@ -563,7 +566,7 @@ export const planoExerciciosQuery = (planoId: string) =>
       const { data, error } = await supabase
         .from("planos_treino_exercicios")
         .select(
-          "id,plano_id,dia_semana,series,repeticoes,descanso_seg,ordem,observacoes,exercicios(id,nome,grupo_muscular,gif_url,video_url,tipo_midia)",
+          "id,plano_id,dia_semana,series,repeticoes,descanso_seg,ordem,observacoes,exercicios(id,nome,grupo_muscular,gif_url,video_url,tipo_midia,descricao,nivel,equipamento)",
         )
         .eq("plano_id", planoId)
         .order("dia_semana", { ascending: true })
