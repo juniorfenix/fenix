@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  Bell,
   Flame,
   Plus,
   TrendingDown,
@@ -13,11 +14,13 @@ import {
   BookOpen,
   ChevronRight,
   UtensilsCrossed,
+  Utensils,
   Dumbbell,
   Scale,
   CalendarDays,
   Brain,
   Loader2,
+  Users,
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/use-auth";
@@ -49,6 +52,10 @@ import {
   badgesQuery,
   guiasMentaisQuery,
   perfilQuery,
+  instrutorAlunosQuery,
+  avisosInstrutorQuery,
+  planosTreinoInstrutorCountQuery,
+  planosAlimentaresInstrutorCountQuery,
 } from "@/lib/queries";
 
 export const Route = createFileRoute("/app/")({
@@ -67,22 +74,169 @@ function Dashboard() {
 
   useEffect(() => {
     if (!perfilReady) return;
-    const papel = perfil?.papel;
-    if (papel === "instrutor" || papel === "nutricionista" || papel === "admin") {
-      navigate({ to: "/app/instrutor" });
-    }
+    if (perfil?.papel === "admin") navigate({ to: "/app/instrutor" });
   }, [perfilReady, perfil?.papel, navigate]);
 
-  if (
-    perfilReady &&
-    (perfil?.papel === "instrutor" ||
-      perfil?.papel === "nutricionista" ||
-      perfil?.papel === "admin")
-  ) {
-    return null;
+  if (!perfilReady) return null;
+  if (perfil?.papel === "admin") return null;
+  if (perfil?.papel === "instrutor" || perfil?.papel === "nutricionista") {
+    return <DashboardProfissional />;
+  }
+  return <DashboardAluno />;
+}
+
+function DashboardProfissional() {
+  const { user } = useAuth();
+  const userId = user?.id ?? "";
+
+  const { data: perfil } = useQuery({ ...perfilQuery(userId), enabled: !!userId });
+  const { data: alunos = [], isLoading: loadingAlunos } = useQuery({
+    ...instrutorAlunosQuery(userId),
+    enabled: !!userId,
+  });
+  const { data: totalTreinos = 0 } = useQuery({
+    ...planosTreinoInstrutorCountQuery(userId),
+    enabled: !!userId,
+  });
+  const { data: totalDietas = 0 } = useQuery({
+    ...planosAlimentaresInstrutorCountQuery(userId),
+    enabled: !!userId,
+  });
+  const { data: avisos = [] } = useQuery({
+    ...avisosInstrutorQuery(userId),
+    enabled: !!userId,
+  });
+
+  const avisosNaoLidos = avisos.filter((a) => !a.lida);
+  const papel = perfil?.papel === "nutricionista" ? "Nutricionista" : "Instrutor";
+
+  if (loadingAlunos) {
+    return (
+      <main className="mx-auto max-w-3xl px-5 pt-8 pb-8 space-y-4">
+        <Skeleton className="h-20 rounded-2xl" />
+        <div className="grid grid-cols-3 gap-3">
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
+          <Skeleton className="h-24 rounded-2xl" />
+        </div>
+        <Skeleton className="h-48 rounded-2xl" />
+      </main>
+    );
   }
 
-  return <DashboardAluno />;
+  return (
+    <main className="mx-auto max-w-3xl px-5 pt-8 pb-8 space-y-6">
+      <header>
+        <div className="text-xs uppercase tracking-widest text-muted-foreground">{papel}</div>
+        <h1 className="mt-1 text-3xl">Gestão de alunos</h1>
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+          Acompanhe seus alunos, prescreva treinos e organize planos alimentares em um só lugar.
+        </p>
+      </header>
+
+      <section className="grid grid-cols-3 gap-3">
+        <div className="glass rounded-2xl p-4">
+          <div className="h-9 w-9 rounded-xl bg-gradient-ember grid place-items-center shadow-ember mb-3">
+            <Users className="h-4 w-4 text-primary-foreground" strokeWidth={2} />
+          </div>
+          <div className="font-display text-3xl text-gradient-ember">{alunos.length}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {alunos.length === 1 ? "Aluno" : "Alunos"}
+          </div>
+        </div>
+        <div className="glass rounded-2xl p-4">
+          <div className="h-9 w-9 rounded-xl bg-gradient-ember grid place-items-center shadow-ember mb-3">
+            <Dumbbell className="h-4 w-4 text-primary-foreground" strokeWidth={2} />
+          </div>
+          <div className="font-display text-3xl text-gradient-ember">{totalTreinos}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {totalTreinos === 1 ? "Plano de treino" : "Planos de treino"}
+          </div>
+        </div>
+        <div className="glass rounded-2xl p-4">
+          <div className="h-9 w-9 rounded-xl bg-gradient-ember grid place-items-center shadow-ember mb-3">
+            <Utensils className="h-4 w-4 text-primary-foreground" strokeWidth={2} />
+          </div>
+          <div className="font-display text-3xl text-gradient-ember">{totalDietas}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {totalDietas === 1 ? "Plano alimentar" : "Planos alimentares"}
+          </div>
+        </div>
+      </section>
+
+      {alunos.length === 0 ? (
+        <section className="glass rounded-2xl p-8 text-center">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-ember grid place-items-center shadow-ember mb-4">
+            <Users className="h-7 w-7 text-primary-foreground" strokeWidth={2} />
+          </div>
+          <h2 className="text-lg font-semibold">Nenhum aluno vinculado ainda</h2>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
+            Adicione ou vincule alunos para começar a prescrever treinos e cardápios.
+          </p>
+          <Link to="/app/instrutor">
+            <Button className="mt-6 bg-gradient-ember text-primary-foreground shadow-ember">
+              Gerenciar alunos
+            </Button>
+          </Link>
+        </section>
+      ) : (
+        <>
+          {avisosNaoLidos.length > 0 && (
+            <section className="glass rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 flex items-center gap-2 border-b border-border/40">
+                <Bell className="h-4 w-4 text-primary" />
+                <h2 className="text-sm font-medium">Atividade recente</h2>
+                <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                  {avisosNaoLidos.length}
+                </span>
+              </div>
+              <ul className="divide-y divide-border/40">
+                {avisosNaoLidos.slice(0, 3).map((aviso) => (
+                  <li key={aviso.id} className="px-5 py-3 flex items-start gap-3">
+                    <div className="mt-0.5 rounded-lg border border-primary/20 bg-primary/10 p-1.5 text-primary shrink-0">
+                      {aviso.tipo === "dieta_seguida" ? (
+                        <Utensils className="h-3.5 w-3.5" />
+                      ) : (
+                        <Dumbbell className="h-3.5 w-3.5" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium">{aviso.titulo}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {aviso.aluno_nome ?? "Aluno"}
+                      </div>
+                    </div>
+                    <Link
+                      to="/app/instrutor/$alunoId"
+                      params={{ alunoId: aviso.aluno_id }}
+                      className="text-xs text-primary hover:underline shrink-0"
+                    >
+                      Abrir
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <Link to="/app/instrutor" className="block">
+            <div className="glass rounded-2xl p-5 flex items-center gap-4 hover:border-primary/40 transition cursor-pointer group">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-ember grid place-items-center shadow-ember shrink-0">
+                <Users className="h-6 w-6 text-primary-foreground" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold">Gerenciar alunos</div>
+                <div className="text-xs text-muted-foreground">
+                  Ver lista completa, prescrever treinos e planos
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition" />
+            </div>
+          </Link>
+        </>
+      )}
+    </main>
+  );
 }
 
 function DashboardAluno() {

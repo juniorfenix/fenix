@@ -221,6 +221,7 @@ export type PerfilRow = {
   id: string;
   nome: string | null;
   papel: PapelUsuario;
+  especialidade: string | null;
 };
 
 export const perfilQuery = (userId: string) =>
@@ -229,7 +230,7 @@ export const perfilQuery = (userId: string) =>
     queryFn: async (): Promise<PerfilRow | null> => {
       const { data, error } = await supabase
         .from("perfis")
-        .select("id,nome,papel")
+        .select("id,nome,papel,especialidade")
         .eq("id", userId)
         .maybeSingle();
       if (error) throw error;
@@ -637,6 +638,32 @@ export const planosAlimentaresInstrutorQuery = (instrutorId: string, alunoId: st
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as PlanoAlimentarRow[];
+    },
+  });
+
+export const planosTreinoInstrutorCountQuery = (instrutorId: string) =>
+  queryOptions({
+    queryKey: ["planos-treino-instrutor-count", instrutorId],
+    queryFn: async (): Promise<number> => {
+      const { count, error } = await supabase
+        .from("planos_treino")
+        .select("id", { count: "exact", head: true })
+        .eq("instrutor_id", instrutorId);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+export const planosAlimentaresInstrutorCountQuery = (instrutorId: string) =>
+  queryOptions({
+    queryKey: ["planos-alimentares-instrutor-count", instrutorId],
+    queryFn: async (): Promise<number> => {
+      const { count, error } = await supabase
+        .from("planos_alimentares")
+        .select("id", { count: "exact", head: true })
+        .eq("instrutor_id", instrutorId);
+      if (error) throw error;
+      return count ?? 0;
     },
   });
 

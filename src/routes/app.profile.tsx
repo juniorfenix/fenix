@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { profileQuery, badgesQuery, weightsQuery, perfilQuery } from "@/lib/queries";
-import { LogOut, Award, Flame, Lock, Pencil, Scale } from "lucide-react";
+import { LogOut, Award, Flame, Lock, Pencil, Scale, Briefcase } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -44,39 +44,193 @@ const ACTIVITY_OPTIONS: { value: ActivityLevel; label: string }[] = [
   { value: "very_active", label: "Muito ativo" },
 ];
 
+const profissionalSchema = z.object({
+  nome: z.string().trim().min(1, "Informe um nome").max(80, "Máx. 80 caracteres"),
+  especialidade: z.string().trim().max(120, "Máx. 120 caracteres").optional(),
+});
+
+type ProfissionalFormErrors = Partial<Record<"nome" | "especialidade", string>>;
+
+const PAPEL_LABEL: Record<string, string> = {
+  instrutor: "Instrutor",
+  nutricionista: "Nutricionista",
+  admin: "Administrador",
+};
+
 function ProfileProfissional() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { data: perfil } = useQuery({ ...perfilQuery(user?.id ?? ""), enabled: !!user?.id });
+  const userId = user?.id ?? "";
+  const qc = useQueryClient();
+
+  const { data: perfil } = useQuery({ ...perfilQuery(userId), enabled: !!userId });
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [form, setForm] = useState({ nome: "", especialidade: "" });
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<ProfissionalFormErrors>({});
+
+  const openEdit = () => {
+    if (!perfil) return;
+    setErrors({});
+    setForm({
+      nome: perfil.nome ?? "",
+      especialidade: perfil.especialidade ?? "",
+    });
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!user) return;
+    const parsed = profissionalSchema.safeParse({
+      nome: form.nome,
+      especialidade: form.especialidade || undefined,
+    });
+    if (!parsed.success) {
+      const fe: ProfissionalFormErrors = {};
+      for (const issue of parsed.error.issues) {
+        const k = issue.path[0] as keyof typeof fe;
+        if (k && !fe[k]) fe[k] = issue.message;
+      }
+      setErrors(fe);
+      toast.error("Verifique os campos");
+      return;
+    }
+    setErrors({});
+    setSaving(true);
+    try {
+      const { nome, especialidade } = parsed.data;
+      const { error } = await supabase
+        .from("perfis")
+        .update({ nome, especialidade: especialidade ?? null })
+        .eq("id", user.id);
+      if (error) throw error;
+      toast.success("Perfil atualizado");
+      setEditOpen(false);
+      qc.invalidateQueries({ queryKey: ["perfil", userId] });
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
     navigate({ to: "/" });
   };
 
-  const papelLabel: Record<string, string> = {
-    instrutor: "Instrutor",
-    nutricionista: "Nutricionista",
-    admin: "Administrador",
-  };
-
   return (
     <main className="mx-auto max-w-md px-5 pt-10 pb-8">
       <header className="text-center">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-ember shadow-ember">
-          <Flame className="h-9 w-9 text-primary-foreground" strokeWidth={1.4} />
+          <Briefcase className="h-9 w-9 text-primary-foreground" strokeWidth={1.4} />
         </div>
         <h1 className="mt-4 text-3xl">{perfil?.nome ?? "Profissional"}</h1>
         <p className="text-sm text-muted-foreground">{user?.email}</p>
         {perfil?.papel && (
           <span className="mt-2 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-            {papelLabel[perfil.papel] ?? perfil.papel}
+            {PAPEL_LABEL[perfil.papel] ?? perfil.papel}
           </span>
         )}
+        <Button
+          onClick={openEdit}
+          variant="outline"
+          size="sm"
+          className="mt-4 h-10"
+          disabled={!perfil}
+        >
+          <Pencil className="h-3.5 w-3.5 mr-1.5" /> Editar perfil
+        </Button>
       </header>
+
+      {/* Informações profissionais */}
+      {perfil?.especialidade && (
+        <section className="mt-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Briefcase className="h-4 w-4 text-primary" />
+            <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
+              Informações profissionais
+            </h2>
+          </div>
+          <div className="glass rounded-2xl px-4 py-3 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Especialidade</span>
+              <span className="font-medium">{perfil.especialidade}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Tipo</span>
+              <span className="font-medium">{PAPEL_LABEL[perfil.papel] ?? perfil.papel}</span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Conta */}
+      <section className="mt-8">
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className="text-xs uppercase tracking-widest text-muted-foreground">
+            Conta
+          </h2>
+        </div>
+        <div className="glass rounded-2xl px-4 py-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Email</span>
+            <span className="font-medium truncate max-w-[200px]">{user?.email}</span>
+          </div>
+        </div>
+      </section>
+
       <Button onClick={handleSignOut} variant="outline" className="mt-10 w-full h-12">
         <LogOut className="h-4 w-4 mr-2" /> Sair
       </Button>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar perfil</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Nome</Label>
+              <Input
+                value={form.nome}
+                onChange={(e) => setForm({ ...form, nome: e.target.value })}
+                maxLength={80}
+                placeholder="Seu nome completo"
+                aria-invalid={!!errors.nome}
+              />
+              {errors.nome && <p className="text-xs text-destructive">{errors.nome}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Especialidade</Label>
+              <Input
+                value={form.especialidade}
+                onChange={(e) => setForm({ ...form, especialidade: e.target.value })}
+                maxLength={120}
+                placeholder="Ex: Musculação, Nutrição esportiva…"
+                aria-invalid={!!errors.especialidade}
+              />
+              {errors.especialidade && (
+                <p className="text-xs text-destructive">{errors.especialidade}</p>
+              )}
+            </div>
+            <div className="rounded-xl border border-border/40 bg-secondary/30 px-3 py-2.5 text-xs text-muted-foreground">
+              Tipo de conta:{" "}
+              <span className="font-medium text-foreground">
+                {PAPEL_LABEL[perfil?.papel ?? ""] ?? perfil?.papel ?? "—"}
+              </span>
+            </div>
+            <Button
+              onClick={saveEdit}
+              disabled={saving}
+              className="w-full h-12 bg-gradient-ember text-primary-foreground shadow-ember"
+            >
+              {saving ? "Salvando…" : "Salvar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

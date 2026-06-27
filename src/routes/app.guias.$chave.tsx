@@ -1,8 +1,11 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { guiasMentaisQuery } from "@/lib/queries";
+import { guiasMentaisQuery, perfilQuery } from "@/lib/queries";
+import { isProfissional, isAdmin } from "@/lib/role-helpers";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/app/guias/$chave")({
   component: GuiaDetail,
@@ -10,8 +13,28 @@ export const Route = createFileRoute("/app/guias/$chave")({
 
 function GuiaDetail() {
   const { chave } = Route.useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const userId = user?.id ?? "";
+
+  const { data: perfil, isSuccess: perfilReady } = useQuery({
+    ...perfilQuery(userId),
+    enabled: !!userId,
+  });
+
   const { data: guias, isPending } = useQuery(guiasMentaisQuery);
   const guia = guias?.find((g) => g.chave === chave);
+
+  useEffect(() => {
+    if (!perfilReady) return;
+    if (isProfissional(perfil?.papel) || isAdmin(perfil?.papel)) {
+      navigate({ to: "/app/instrutor" });
+    }
+  }, [perfilReady, perfil?.papel, navigate]);
+
+  if (perfilReady && (isProfissional(perfil?.papel) || isAdmin(perfil?.papel))) {
+    return null;
+  }
 
   return (
     <main className="mx-auto max-w-2xl px-6 pt-8 pb-12">

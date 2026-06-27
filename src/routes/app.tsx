@@ -16,7 +16,6 @@ import {
   Utensils,
   Dumbbell,
   Users,
-  ClipboardList,
   Shield,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -70,12 +69,6 @@ function AppShell() {
     const papel = perfil?.papel;
     if (isAdmin(papel)) return TABS_ADMIN;
     if (isProfissional(papel)) return TABS_PROFISSIONAL;
-    if (isAluno(papel)) {
-      return [
-        ...TABS_BASE,
-        { to: "/app/meu-plano", icon: ClipboardList, label: "Meu Plano", exact: false },
-      ];
-    }
     return TABS_BASE;
   }, [perfil?.papel]);
 
