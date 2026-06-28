@@ -59,6 +59,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Fênix — Renasça em sua melhor versão" },
       { name: "description", content: "Aplicativo premium de emagrecimento e estilo de vida. Método Fênix." },
       { name: "theme-color", content: "#1a1614" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "Fênix" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { property: "og:title", content: "Fênix — Renasça em sua melhor versão" },
       { name: "twitter:title", content: "Fênix — Renasça em sua melhor versão" },
       { property: "og:description", content: "Aplicativo premium de emagrecimento e estilo de vida. Método Fênix." },
@@ -69,6 +73,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
     ],
     links: [
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -92,6 +98,42 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+
+    let focusCleanup: (() => void) | undefined;
+    let updateFoundCleanup: (() => void) | undefined;
+
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        const onFocus = () => registration.update().catch(() => {});
+        window.addEventListener("focus", onFocus);
+        focusCleanup = () => window.removeEventListener("focus", onFocus);
+
+        // Quando um novo SW termina de instalar e fica em "waiting",
+        // notifica o app via CustomEvent para que o usuário decida quando atualizar.
+        const onUpdateFound = () => {
+          const nextSW = registration.installing;
+          if (!nextSW) return;
+          nextSW.addEventListener("statechange", () => {
+            if (nextSW.state === "installed" && navigator.serviceWorker.controller) {
+              window.dispatchEvent(new CustomEvent("sw:update-available"));
+            }
+          });
+        };
+        registration.addEventListener("updatefound", onUpdateFound);
+        updateFoundCleanup = () => registration.removeEventListener("updatefound", onUpdateFound);
+      })
+      .catch(() => {});
+
+    return () => {
+      focusCleanup?.();
+      updateFoundCleanup?.();
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

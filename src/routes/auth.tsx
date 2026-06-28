@@ -100,7 +100,7 @@ function AuthPage() {
     "Enviaremos um link para redefinir sua senha.";
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-12">
+    <main className="flex h-dvh items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-10">
           <Flame className="h-6 w-6 text-primary" strokeWidth={1.5} />
