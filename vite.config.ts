@@ -13,6 +13,9 @@ export default defineConfig({
   nitro: {
     preset: "vercel",
     noExternals: true,
+    // Auto-detection of public/ is blocked by nitroPrepare's applyToEnvironment filter
+    // in this TanStack Start + Nitro v3 beta setup — explicit declaration is required.
+    publicAssets: [{ dir: "public" }],
     output: {
       dir: ".vercel/output",
       serverDir: ".vercel/output/functions/__server.func",
