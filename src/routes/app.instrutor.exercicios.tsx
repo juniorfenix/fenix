@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { ArrowLeft, Dumbbell, Download, Loader2, Pencil, Plus, Search } from "lucide-react";
+import { ArrowLeft, Dumbbell, Download, Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { ExercicioMedia } from "@/components/exercicio-media";
 import {
   exerciciosQuery,
@@ -22,6 +22,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
@@ -100,8 +110,25 @@ function ExerciciosPage() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<FormErrors>({});
   const [importOpen, setImportOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ExercicioRow | null>(null);
 
   const { data: exercicios = [], isLoading } = useQuery(exerciciosQuery);
+
+  const deletar = useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase.from("exercicios").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["exercicios"] });
+      toast.success("Exercício excluído.");
+      setDeleteTarget(null);
+    },
+    onError: () => {
+      toast.error("Erro ao excluir exercício.");
+      setDeleteTarget(null);
+    },
+  });
 
   const filtered = exercicios.filter((ex) => {
     const q = busca.trim().toLowerCase();
@@ -255,6 +282,12 @@ function ExerciciosPage() {
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
+                <button
+                  onClick={() => setDeleteTarget(ex)}
+                  className="shrink-0 rounded-lg p-2 text-destructive/60 hover:bg-destructive/10 hover:text-destructive transition"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </li>
             ))}
           </ul>
@@ -396,6 +429,28 @@ function ExerciciosPage() {
           setImportOpen(false);
         }}
       />
+
+      {/* ── Delete confirmation ───────────────────────────────────────────────── */}
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir exercício?</AlertDialogTitle>
+            <AlertDialogDescription>
+              &ldquo;{deleteTarget?.nome}&rdquo; será removido permanentemente do catálogo. Planos
+              de treino que usam este exercício serão afetados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTarget && deletar.mutate(deleteTarget.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletar.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

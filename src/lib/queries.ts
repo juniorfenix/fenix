@@ -1,6 +1,8 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { ActivityLevel } from "@/lib/calories";
+import { searchExercisesByName, type ExerciseDBExercise } from "@/lib/exercisedb";
+export type { ExerciseDBExercise };
 
 // ---------- Types ----------
 export type ProfileRow = {
@@ -902,4 +904,15 @@ export const dietasQuery = (params: { categoria: string; genero: string }) =>
       };
     },
     staleTime: 10 * 60 * 1000,
+  });
+
+// ---------- ExerciseDB search ----------
+
+export const exerciseDbSearchQuery = (name: string) =>
+  queryOptions({
+    queryKey: ["exercisedb-search", name],
+    queryFn: () => searchExercisesByName(name),
+    staleTime: 24 * 60 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    enabled: name.trim().length >= 2,
   });
