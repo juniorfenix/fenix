@@ -1,1 +1,0 @@
-const l={sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9};function g(c){const{weight:e,height:a,age:n,gender:r,activity:i,goal:o}=c,t=(r==="male"?10*e+6.25*a-5*n+5:10*e+6.25*a-5*n-161)*l[i],s=o==="lose"?t-500:o==="gain"?t+300:t;return Math.max(1200,Math.round(s))}function u(){return new Date().toLocaleDateString("sv-SE")}export{g as c,u as t};
