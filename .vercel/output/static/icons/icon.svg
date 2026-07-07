@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fundo sólido (sem rx: funciona como maskable em qualquer forma de corte) -->
+  <rect width="512" height="512" fill="#1a1614"/>
+  <!-- "F" lettermark — amber #d97706, dentro da safe zone maskable (>10% margem) -->
+  <path fill="#d97706" d="M152 104 L360 104 L360 160 L208 160 L208 256 L310 256 L310 312 L208 312 L208 408 L152 408 Z"/>
+</svg>

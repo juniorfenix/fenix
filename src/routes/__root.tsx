@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PwaUpdateToast } from "@/components/pwa-update-toast";
 
 function NotFoundComponent() {
   return (
@@ -119,7 +120,9 @@ function RootComponent() {
           if (!nextSW) return;
           nextSW.addEventListener("statechange", () => {
             if (nextSW.state === "installed" && navigator.serviceWorker.controller) {
-              window.dispatchEvent(new CustomEvent("sw:update-available"));
+              window.dispatchEvent(
+                new CustomEvent("sw:update-available", { detail: { registration } })
+              );
             }
           });
         };
@@ -140,6 +143,7 @@ function RootComponent() {
         <AuthCacheBridge />
         <Outlet />
         <Toaster />
+        <PwaUpdateToast />
       </AuthProvider>
     </QueryClientProvider>
   );

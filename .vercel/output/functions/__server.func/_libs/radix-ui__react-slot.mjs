@@ -56,6 +56,13 @@ function createSlot(ownerName) {
 }
 var Slot = /* @__PURE__ */ createSlot("Slot");
 var SLOTTABLE_IDENTIFIER = /* @__PURE__ */ Symbol.for("radix.slottable");
+// @__NO_SIDE_EFFECTS__
+function createSlottable(ownerName) {
+  const Slottable2 = (props) => "child" in props ? props.children(props.child) : props.children;
+  Slottable2.displayName = `${ownerName}.Slottable`;
+  Slottable2.__radixId = SLOTTABLE_IDENTIFIER;
+  return Slottable2;
+}
 var getSlottableElementFromSlottable = (slottable, child) => {
   if ("child" in slottable.props) {
     const child2 = slottable.props.child;
@@ -120,5 +127,6 @@ var createSlottableError = (ownerName) => {
 var use = React[" use ".trim().toString()];
 export {
   Slot as S,
+  createSlottable as a,
   createSlot as c
 };
