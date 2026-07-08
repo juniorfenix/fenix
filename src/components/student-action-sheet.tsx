@@ -50,10 +50,10 @@ export function StudentActionSheet({
         </div>
       )}
       <div className="mt-3 flex flex-wrap gap-2">
-        <Badge variant={aluno.tem_plano_treino ? "default" : "outline"}>
+        <Badge variant={aluno.tem_plano_treino ? "success" : "outline"}>
           {aluno.tem_plano_treino ? "Treino ativo" : "Sem treino"}
         </Badge>
-        <Badge variant={aluno.tem_plano_alimentar ? "default" : "outline"}>
+        <Badge variant={aluno.tem_plano_alimentar ? "success" : "outline"}>
           {aluno.tem_plano_alimentar ? "Dieta ativa" : "Sem dieta"}
         </Badge>
       </div>

@@ -45,118 +45,204 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-ember: var(--ember);
   --color-ember-glow: var(--ember-glow);
-  --font-display: "Cormorant Garamond", "Times New Roman", serif;
-  --font-sans: "Inter", system-ui, sans-serif;
+  /* Fenix Design System (standalone) usa uma única família sans em toda
+     a hierarquia tipográfica — não há mais uma fonte serifada de display.
+     Mantemos o token --font-display para não exigir edição de cada
+     arquivo que usa className="font-display"; ele agora aponta para a
+     mesma pilha do --font-sans. */
+  --font-display:
+    "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
 }
 
-/* Phoenix — dark, premium, motivational */
+/* Fênix — clean, claro, estilo iOS/SF (Fenix Design System standalone) */
 :root {
   --radius: 0.75rem;
 
-  --background: oklch(0.16 0.005 60);
-  --foreground: oklch(0.96 0.005 80);
+  --background: #f7f8fa;
+  --foreground: #111827;
 
-  --card: oklch(0.20 0.006 60);
-  --card-foreground: oklch(0.96 0.005 80);
+  --card: #ffffff;
+  --card-foreground: #111827;
 
-  --popover: oklch(0.20 0.006 60);
-  --popover-foreground: oklch(0.96 0.005 80);
+  --popover: #ffffff;
+  --popover-foreground: #111827;
 
-  /* Ember orange — Phoenix accent */
-  --primary: oklch(0.72 0.18 47);
-  --primary-foreground: oklch(0.14 0.01 60);
+  /* Azul Fênix — cor primária do novo Design System */
+  --primary: #0a84ff;
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.26 0.008 60);
-  --secondary-foreground: oklch(0.94 0.005 80);
+  --secondary: #eff1f3;
+  --secondary-foreground: #111827;
 
-  --muted: oklch(0.24 0.006 60);
-  --muted-foreground: oklch(0.66 0.012 70);
+  --muted: #eff1f3;
+  --muted-foreground: #6b7280;
 
-  --accent: oklch(0.78 0.14 75);
-  --accent-foreground: oklch(0.14 0.01 60);
+  /* --accent é usado de duas formas no código atual: (1) fundo sutil de
+     hover em elementos ghost/outline (uso shadcn padrão) e (2) uma
+     "segunda cor" decorativa em ícones/textos (uso específico do app,
+     ex.: text-accent em Sparkles/Award). O novo Design System só define
+     uma família de azul, então escolhemos --color-primary-hover (um azul
+     mais escuro) para manter esses ícones/textos legíveis sobre fundo
+     claro. Isso deixa o hover de botões ghost/outline mais forte do que
+     o padrão shadcn — revisar no Prompt 2 ao reconstruir os componentes
+     base, e considerar separar em dois tokens se necessário. */
+  --accent: #006edc;
+  --accent-foreground: #ffffff;
 
-  --destructive: oklch(0.58 0.21 27);
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive: #ff3b30;
+  --destructive-foreground: #ffffff;
 
-  --border: oklch(0.28 0.006 60);
-  --input: oklch(0.28 0.006 60);
-  --ring: oklch(0.72 0.18 47);
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #0a84ff;
 
-  --ember: oklch(0.72 0.18 47);
-  --ember-glow: oklch(0.82 0.15 65);
+  --ember: #0a84ff;
+  --ember-glow: #006edc;
 
-  --chart-1: oklch(0.72 0.18 47);
-  --chart-2: oklch(0.78 0.14 75);
-  --chart-3: oklch(0.55 0.10 50);
-  --chart-4: oklch(0.66 0.012 70);
-  --chart-5: oklch(0.40 0.02 60);
+  --chart-1: #0a84ff;
+  --chart-2: #34c759;
+  --chart-3: #f5c542;
+  --chart-4: #ff3b30;
+  --chart-5: #6b7280;
 
-  --sidebar: oklch(0.18 0.005 60);
-  --sidebar-foreground: oklch(0.96 0.005 80);
-  --sidebar-primary: oklch(0.72 0.18 47);
-  --sidebar-primary-foreground: oklch(0.14 0.01 60);
-  --sidebar-accent: oklch(0.24 0.006 60);
-  --sidebar-accent-foreground: oklch(0.96 0.005 80);
-  --sidebar-border: oklch(0.28 0.006 60);
-  --sidebar-ring: oklch(0.72 0.18 47);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #111827;
+  --sidebar-primary: #0a84ff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eff1f3;
+  --sidebar-accent-foreground: #111827;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #0a84ff;
 
-  --gradient-ember: linear-gradient(135deg, oklch(0.72 0.18 47), oklch(0.82 0.15 65));
-  --gradient-night: linear-gradient(180deg, oklch(0.18 0.005 60), oklch(0.13 0.005 60));
-  --shadow-ember: 0 20px 60px -20px oklch(0.72 0.18 47 / 0.45);
+  /* Sem gradientes no novo sistema — mantidos como cor plana para não
+     exigir edição imediata de quem referencia estas variáveis. */
+  --gradient-ember: #0a84ff;
+  --gradient-night: #f7f8fa;
+  --shadow-ember: 0 8px 24px rgba(17, 24, 39, 0.1);
+
+  /* Tokens adicionais do Fenix Design System (standalone), ainda não
+     conectados a utilitários Tailwind — ficam disponíveis para uso via
+     valor arbitrário (ex.: shadow-[var(--shadow-modal)]) e para a
+     reconstrução dos componentes base no Prompt 2. */
+  --shadow-xs: 0 1px 2px rgba(17, 24, 39, 0.04);
+  --shadow-sm: 0 2px 8px rgba(17, 24, 39, 0.06);
+  --shadow-md: 0 8px 24px rgba(17, 24, 39, 0.1);
+  --shadow-nav: 0 4px 20px rgba(17, 24, 39, 0.1);
+  --shadow-modal: 0 24px 48px rgba(17, 24, 39, 0.18);
+
+  --radius-button: 12px;
+  --radius-card: 16px;
+  --radius-input: 12px;
+  --radius-chip: 999px;
+  --radius-avatar: 999px;
+  --radius-pill: 999px;
+  --radius-modal: 22px;
+  --radius-sheet-top: 24px;
+
+  --success: #34c759;
+  --success-soft: #e8f9ec;
+  --warning: #f5c542;
+  --warning-soft: #fdf6e3;
+  --danger: #ff3b30;
+  --danger-soft: #ffebea;
+  --primary-soft: #eaf4ff;
+  --primary-hover: #006edc;
+  --primary-press: #0a6fd1;
+  --surface: #f7f8fa;
+  --surface-muted: #eff1f3;
+  --text-muted: #9ca3af;
+  --overlay: rgba(17, 24, 39, 0.55);
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html { color-scheme: dark; }
-  html, body { background: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); }
-  body {
-    background-image:
-      radial-gradient(ellipse 70% 50% at 50% -10%, oklch(0.72 0.18 47 / 0.12), transparent 60%),
-      radial-gradient(ellipse 50% 40% at 100% 100%, oklch(0.78 0.14 75 / 0.06), transparent 70%);
-    background-attachment: fixed;
-    min-height: 100dvh;
+  * {
+    border-color: var(--color-border);
   }
-  h1, h2, h3 { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.01em; }
+  html {
+    color-scheme: light;
+  }
+  html,
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+  body {
+    min-height: 100vh;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
 }
 
 @layer utilities {
   .text-gradient-ember {
-    background: var(--gradient-ember);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--primary);
   }
-  .bg-gradient-ember { background-image: var(--gradient-ember); }
-  .shadow-ember { box-shadow: var(--shadow-ember); }
+  .bg-gradient-ember {
+    background: var(--primary);
+  }
+  .shadow-ember {
+    box-shadow: var(--shadow-md);
+  }
   .glass {
-    background: oklch(0.20 0.006 60 / 0.6);
-    backdrop-filter: blur(12px);
-    border: 1px solid oklch(0.96 0.005 80 / 0.06);
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
   }
   @keyframes pop {
-    0% { transform: scale(1); }
-    40% { transform: scale(1.25) rotate(-6deg); }
-    70% { transform: scale(0.95) rotate(3deg); }
-    100% { transform: scale(1); }
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.25) rotate(-6deg);
+    }
+    70% {
+      transform: scale(0.95) rotate(3deg);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
   @keyframes streak-glow {
-    0%, 100% { box-shadow: 0 0 0 0 oklch(0.72 0.18 47 / 0); }
-    50% { box-shadow: 0 0 0 8px oklch(0.72 0.18 47 / 0.18); }
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(10, 132, 255, 0);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(10, 132, 255, 0.18);
+    }
   }
-  .animate-pop { animation: pop 0.7s cubic-bezier(.36,1.4,.55,1) both; }
-  .animate-streak { animation: streak-glow 1.2s ease-out; }
+  .animate-pop {
+    animation: pop 0.7s cubic-bezier(0.36, 1.4, 0.55, 1) both;
+  }
+  .animate-streak {
+    animation: streak-glow 1.2s ease-out;
+  }
   @keyframes loading-bar {
-    0% { width: 0%; }
-    100% { width: 100%; }
+    0% {
+      width: 0%;
+    }
+    100% {
+      width: 100%;
+    }
   }
-  .animate-loading-bar { animation: loading-bar 3.2s cubic-bezier(.65,0,.35,1) forwards; }
+  .animate-loading-bar {
+    animation: loading-bar 3.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
 }
 
-/* Custom scrollbar — paleta Fênix */
+/* Custom scrollbar — paleta Fênix (clean/claro) */
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: oklch(0.72 0.18 47 / 0.55) transparent;
+    scrollbar-color: var(--border) transparent;
   }
   *::-webkit-scrollbar {
     width: 10px;
@@ -166,31 +252,28 @@
     background: transparent;
   }
   *::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, oklch(0.72 0.18 47 / 0.65), oklch(0.82 0.15 65 / 0.65));
+    background: var(--border);
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
   *::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, oklch(0.72 0.18 47 / 0.9), oklch(0.82 0.15 65 / 0.9));
+    background: var(--muted-foreground);
     background-clip: padding-box;
   }
   *::-webkit-scrollbar-corner {
     background: transparent;
   }
 
-  /* Spinners nativos do input[type=number] estilizados na paleta Fênix.
-     Combinado com `color-scheme: dark` no html, o navegador já desenha
-     o fundo escuro; aqui reforçamos o acento laranja e o tamanho. */
+  /* Spinners nativos do input[type=number] estilizados na cor primária. */
   input[type="number"] {
-    accent-color: oklch(0.72 0.18 47);
+    accent-color: var(--primary);
   }
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
     opacity: 0.85;
     cursor: pointer;
     height: 1.6em;
-    filter: hue-rotate(-15deg) saturate(1.4);
     transition: opacity 0.15s ease;
   }
   input[type="number"]::-webkit-inner-spin-button:hover,
@@ -198,4 +281,3 @@
     opacity: 1;
   }
 }
-

@@ -41,6 +41,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { PageHeader } from "@/components/page-header";
 import { StudentActionSheet } from "@/components/student-action-sheet";
 import { toast } from "sonner";
 
@@ -202,17 +203,7 @@ function InstrutorPage() {
   return (
     <main className="mx-auto max-w-3xl px-5 pt-8 pb-8 space-y-6">
       <div className="space-y-3">
-        <header className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-ember grid place-items-center shadow-ember">
-            <Users className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div>
-            <div className="text-xs uppercase tracking-widest text-muted-foreground">
-              {papelLabel}
-            </div>
-            <h1 className="text-2xl">Gestão de alunos</h1>
-          </div>
-        </header>
+        <PageHeader icon={Users} eyebrow={papelLabel} title="Gestão de alunos" />
         <p className="text-sm text-muted-foreground leading-relaxed">
           Acompanhe treino, dieta e avisos dos seus alunos em um só lugar.
         </p>
@@ -514,7 +505,7 @@ function FiltroChip({
       aria-pressed={active}
       className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
         active
-          ? "border-transparent bg-primary text-primary-foreground shadow-sm"
+          ? "border-transparent bg-primary text-primary-foreground shadow-[var(--shadow-sm)]"
           : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"
       }`}
     >
@@ -551,11 +542,11 @@ function AlunoCard({
           </div>
         )}
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <Badge variant={aluno.tem_plano_treino ? "default" : "outline"} className="text-[10px]">
+          <Badge variant={aluno.tem_plano_treino ? "success" : "outline"} className="text-[10px]">
             {aluno.tem_plano_treino ? "Treino ativo" : "Sem treino"}
           </Badge>
           <Badge
-            variant={aluno.tem_plano_alimentar ? "default" : "outline"}
+            variant={aluno.tem_plano_alimentar ? "success" : "outline"}
             className="text-[10px]"
           >
             {aluno.tem_plano_alimentar ? "Dieta ativa" : "Sem dieta"}
