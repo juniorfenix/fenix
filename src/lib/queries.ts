@@ -250,6 +250,8 @@ export type InstrutorAlunoRow = {
   created_at: string;
   ultimo_treino_em: string | null;
   ultima_dieta_em: string | null;
+  tem_plano_treino: boolean;
+  tem_plano_alimentar: boolean;
 };
 
 type InstrutorAlunoRecord = {
@@ -272,7 +274,7 @@ export const instrutorAlunosQuery = (instrutorId: string) =>
       const rows = data ?? [];
       const alunoIds = rows.map((r) => r.aluno_id);
 
-      const [profilesMap, treinoMap, dietaMap] = await Promise.all([
+      const [profilesMap, treinoInfo, dietaInfo] = await Promise.all([
         profilesById(alunoIds),
         ultimoTreinoPorAluno(instrutorId, alunoIds),
         ultimaDietaPorAluno(instrutorId, alunoIds),
@@ -287,8 +289,10 @@ export const instrutorAlunosQuery = (instrutorId: string) =>
           aluno_nome: r.perfis?.nome ?? profile?.display_name ?? null,
           aluno_email: profile?.email ?? null,
           created_at: r.created_at ?? "",
-          ultimo_treino_em: treinoMap.get(r.aluno_id) ?? null,
-          ultima_dieta_em: dietaMap.get(r.aluno_id) ?? null,
+          ultimo_treino_em: treinoInfo.ultimoMap.get(r.aluno_id) ?? null,
+          ultima_dieta_em: dietaInfo.ultimoMap.get(r.aluno_id) ?? null,
+          tem_plano_treino: treinoInfo.ativoSet.has(r.aluno_id),
+          tem_plano_alimentar: dietaInfo.ativoSet.has(r.aluno_id),
         };
       });
     },
@@ -377,20 +381,33 @@ async function profilesById(ids: string[]) {
   return map;
 }
 
-async function ultimoTreinoPorAluno(instrutorId: string, alunoIds: string[]) {
-  const map = new Map<string, string>();
-  if (alunoIds.length === 0) return map;
+type AlunoAtividadeInfo = {
+  ultimoMap: Map<string, string>;
+  ativoSet: Set<string>;
+};
+
+async function ultimoTreinoPorAluno(
+  instrutorId: string,
+  alunoIds: string[],
+): Promise<AlunoAtividadeInfo> {
+  const ultimoMap = new Map<string, string>();
+  const ativoSet = new Set<string>();
+  if (alunoIds.length === 0) return { ultimoMap, ativoSet };
 
   const { data: planos, error: planosError } = await supabase
     .from("planos_treino")
-    .select("id,aluno_id")
+    .select("id,aluno_id,ativo")
     .eq("instrutor_id", instrutorId)
     .in("aluno_id", alunoIds);
   if (planosError) throw planosError;
 
+  for (const p of planos ?? []) {
+    if (p.ativo) ativoSet.add(p.aluno_id);
+  }
+
   const planoAluno = new Map((planos ?? []).map((p) => [p.id, p.aluno_id]));
   const planoIds = [...planoAluno.keys()];
-  if (planoIds.length === 0) return map;
+  if (planoIds.length === 0) return { ultimoMap, ativoSet };
 
   const { data, error } = await supabase
     .from("plano_treino_conclusoes")
@@ -401,25 +418,33 @@ async function ultimoTreinoPorAluno(instrutorId: string, alunoIds: string[]) {
   if (error) throw error;
 
   for (const row of data ?? []) {
-    if (!map.has(row.aluno_id)) map.set(row.aluno_id, row.data);
+    if (!ultimoMap.has(row.aluno_id)) ultimoMap.set(row.aluno_id, row.data);
   }
-  return map;
+  return { ultimoMap, ativoSet };
 }
 
-async function ultimaDietaPorAluno(instrutorId: string, alunoIds: string[]) {
-  const map = new Map<string, string>();
-  if (alunoIds.length === 0) return map;
+async function ultimaDietaPorAluno(
+  instrutorId: string,
+  alunoIds: string[],
+): Promise<AlunoAtividadeInfo> {
+  const ultimoMap = new Map<string, string>();
+  const ativoSet = new Set<string>();
+  if (alunoIds.length === 0) return { ultimoMap, ativoSet };
 
   const { data: planos, error: planosError } = await supabase
     .from("planos_alimentares")
-    .select("id,aluno_id")
+    .select("id,aluno_id,ativo")
     .eq("instrutor_id", instrutorId)
     .in("aluno_id", alunoIds);
   if (planosError) throw planosError;
 
+  for (const p of planos ?? []) {
+    if (p.ativo) ativoSet.add(p.aluno_id);
+  }
+
   const planoAluno = new Map((planos ?? []).map((p) => [p.id, p.aluno_id]));
   const planoIds = [...planoAluno.keys()];
-  if (planoIds.length === 0) return map;
+  if (planoIds.length === 0) return { ultimoMap, ativoSet };
 
   const { data, error } = await supabase
     .from("plano_alimentar_adesao")
@@ -430,9 +455,9 @@ async function ultimaDietaPorAluno(instrutorId: string, alunoIds: string[]) {
   if (error) throw error;
 
   for (const row of data ?? []) {
-    if (!map.has(row.aluno_id)) map.set(row.aluno_id, row.data);
+    if (!ultimoMap.has(row.aluno_id)) ultimoMap.set(row.aluno_id, row.data);
   }
-  return map;
+  return { ultimoMap, ativoSet };
 }
 
 export type InstrutorAvisoRow = {

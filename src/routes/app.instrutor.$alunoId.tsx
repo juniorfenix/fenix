@@ -43,7 +43,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
+type AlunoTab = "treino" | "alimentar" | "progresso";
+
+const ALUNO_TABS: AlunoTab[] = ["treino", "alimentar", "progresso"];
+
 export const Route = createFileRoute("/app/instrutor/$alunoId")({
+  validateSearch: (search: Record<string, unknown>): { tab?: AlunoTab } => ({
+    tab: ALUNO_TABS.includes(search.tab as AlunoTab) ? (search.tab as AlunoTab) : undefined,
+  }),
   component: AlunoDetalhe,
 });
 
@@ -874,6 +881,8 @@ function PlanoAlimentarCard({
 
 function AlunoDetalhe() {
   const { alunoId } = Route.useParams();
+  const { tab } = Route.useSearch();
+  const [activeTab, setActiveTab] = useState<AlunoTab>(tab ?? "treino");
   const { user } = useAuth();
   const instrutorId = user?.id ?? "";
 
@@ -939,7 +948,7 @@ function AlunoDetalhe() {
         </div>
       </div>
 
-      <Tabs defaultValue="treino">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as AlunoTab)}>
         <TabsList className="w-full">
           <TabsTrigger value="treino" className="flex-1 gap-1.5">
             <Dumbbell className="h-4 w-4" /> Treino
