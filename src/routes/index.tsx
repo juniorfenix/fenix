@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Flame, ArrowRight, Sparkles, TrendingDown, Award } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -22,7 +24,9 @@ function Landing() {
           <Flame className="h-6 w-6 text-primary" strokeWidth={1.5} />
           <span className="font-display text-2xl tracking-tight">Fênix</span>
         </div>
-        <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition">Entrar</Link>
+        <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground transition">
+          Entrar
+        </Link>
       </nav>
 
       <section className="mx-auto max-w-4xl px-6 pt-16 pb-24 text-center sm:pt-24">
@@ -33,28 +37,44 @@ function Landing() {
           Das cinzas, <span className="text-gradient-ember">a sua melhor versão</span>.
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
-          Um programa silencioso e premium de emagrecimento e estilo de vida. Sem dietas barulhentas — apenas hábitos que renascem.
+          Um programa silencioso e premium de emagrecimento e estilo de vida. Sem dietas barulhentas
+          — apenas hábitos que renascem.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            to="/auth"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-8 py-3.5 text-sm font-medium text-primary-foreground shadow-ember transition hover:scale-[1.02]"
+          <Button
+            asChild
+            variant="ember"
+            className="h-auto rounded-full px-8 py-3.5 transition-transform hover:scale-[1.02]"
           >
-            Iniciar minha jornada <ArrowRight className="h-4 w-4" />
-          </Link>
+            <Link to="/auth">
+              Iniciar minha jornada <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </div>
 
         <div className="mt-24 grid gap-4 sm:grid-cols-3">
           {[
-            { icon: TrendingDown, title: "Progresso visível", desc: "Acompanhe seu peso e calorias com clareza absoluta." },
-            { icon: Flame, title: "Diário simples", desc: "Registre refeições em segundos. Sem fricção." },
-            { icon: Award, title: "Conquistas", desc: "Desbloqueie selos a cada semana de consistência." },
+            {
+              icon: TrendingDown,
+              title: "Progresso visível",
+              desc: "Acompanhe seu peso e calorias com clareza absoluta.",
+            },
+            {
+              icon: Flame,
+              title: "Diário simples",
+              desc: "Registre refeições em segundos. Sem fricção.",
+            },
+            {
+              icon: Award,
+              title: "Conquistas",
+              desc: "Desbloqueie selos a cada semana de consistência.",
+            },
           ].map((f) => (
-            <div key={f.title} className="glass rounded-2xl p-6 text-left">
+            <Card key={f.title} className="p-6 text-left">
               <f.icon className="h-5 w-5 text-primary" strokeWidth={1.5} />
               <h3 className="mt-4 text-lg">{f.title}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
-            </div>
+            </Card>
           ))}
         </div>
       </section>

@@ -548,7 +548,8 @@ function Onboarding() {
               <Button
                 onClick={finish}
                 disabled={busy}
-                className="h-14 flex-[2] text-base bg-gradient-ember text-primary-foreground shadow-ember"
+                variant="ember"
+                className="h-14 flex-[2] text-base"
               >
                 {finalLabel}
               </Button>

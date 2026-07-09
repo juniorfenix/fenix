@@ -4,6 +4,7 @@ import { Flame, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -87,27 +88,32 @@ function AuthPage() {
     }
   };
 
-
   const title =
-    mode === "signin" ? "Bem-vindo de volta" :
-    mode === "signup" ? "Comece a renascer" :
-    mode === "new_password" ? "Definir nova senha" :
-    "Recuperar acesso";
+    mode === "signin"
+      ? "Bem-vindo de volta"
+      : mode === "signup"
+        ? "Comece a renascer"
+        : mode === "new_password"
+          ? "Definir nova senha"
+          : "Recuperar acesso";
   const subtitle =
-    mode === "signin" ? "Entre para continuar sua jornada." :
-    mode === "signup" ? "Crie sua conta gratuita." :
-    mode === "new_password" ? "Escolha uma nova senha para entrar." :
-    "Enviaremos um link para redefinir sua senha.";
+    mode === "signin"
+      ? "Entre para continuar sua jornada."
+      : mode === "signup"
+        ? "Crie sua conta gratuita."
+        : mode === "new_password"
+          ? "Escolha uma nova senha para entrar."
+          : "Enviaremos um link para redefinir sua senha.";
 
   return (
-    <main className="flex h-dvh items-center justify-center px-6 py-12">
+    <main className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-10">
           <Flame className="h-6 w-6 text-primary" strokeWidth={1.5} />
           <span className="font-display text-2xl">Fênix</span>
         </Link>
 
-        <div className="glass rounded-3xl p-8">
+        <Card className="p-8">
           <h1 className="text-3xl text-center">{title}</h1>
           <p className="mt-2 text-center text-sm text-muted-foreground">{subtitle}</p>
 
@@ -115,19 +121,34 @@ function AuthPage() {
             {mode === "signup" && (
               <div className="space-y-2">
                 <Label htmlFor="name">Nome</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required maxLength={60} />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  maxLength={60}
+                />
               </div>
             )}
             {mode !== "new_password" && (
               <div className="space-y-2">
                 <Label htmlFor="email">E-mail</Label>
-                <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
             )}
             {mode !== "reset" && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">{mode === "new_password" ? "Nova senha" : "Senha"}</Label>
+                  <Label htmlFor="password">
+                    {mode === "new_password" ? "Nova senha" : "Senha"}
+                  </Label>
                   {mode === "signin" && (
                     <button
                       type="button"
@@ -142,7 +163,11 @@ function AuthPage() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    autoComplete={mode === "signup" || mode === "new_password" ? "new-password" : "current-password"}
+                    autoComplete={
+                      mode === "signup" || mode === "new_password"
+                        ? "new-password"
+                        : "current-password"
+                    }
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -160,12 +185,16 @@ function AuthPage() {
                 </div>
               </div>
             )}
-            <Button type="submit" disabled={busy} className="w-full h-12 bg-gradient-ember text-primary-foreground hover:opacity-90 shadow-ember">
-              {busy ? "Aguarde…" :
-                mode === "signin" ? "Entrar" :
-                mode === "signup" ? "Criar conta" :
-                mode === "new_password" ? "Salvar nova senha" :
-                "Enviar link"}
+            <Button type="submit" disabled={busy} variant="ember" className="w-full h-12">
+              {busy
+                ? "Aguarde…"
+                : mode === "signin"
+                  ? "Entrar"
+                  : mode === "signup"
+                    ? "Criar conta"
+                    : mode === "new_password"
+                      ? "Salvar nova senha"
+                      : "Enviar link"}
             </Button>
           </form>
 
@@ -175,12 +204,14 @@ function AuthPage() {
               onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
               className="mt-6 w-full text-center text-sm text-muted-foreground hover:text-foreground"
             >
-              {mode === "signin" ? "Não tem conta? Criar agora" :
-                mode === "signup" ? "Já tem conta? Entrar" :
-                "Voltar para o login"}
+              {mode === "signin"
+                ? "Não tem conta? Criar agora"
+                : mode === "signup"
+                  ? "Já tem conta? Entrar"
+                  : "Voltar para o login"}
             </button>
           )}
-        </div>
+        </Card>
       </div>
     </main>
   );

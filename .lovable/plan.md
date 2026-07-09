@@ -5,6 +5,7 @@ Vou expandir a aba **Método** com 4 cards de ação (Meal Prep, Fora de Casa, C
 ## 1. Aba Método (`src/routes/app.method.tsx`)
 
 **Hub de Execução** — 4 cards no topo (abaixo do header, acima da busca):
+
 - 🍱 **Checklist de Meal Prep** → abre `Dialog` com checklist interativo (0–60 min) com estado local persistido em `localStorage` (`fenix:mealprep`).
 - ✈️ **Guia Fora de Casa** → abre `Dialog` com tabs: Restaurantes, Fast Food, Festas, Viagens.
 - 👨‍🍳 **Cozinha Fênix** → abre `Dialog` com lista filtrável das 21 receitas (categoria + busca + tempo). Clique numa receita → modo preparo passo a passo.
@@ -19,6 +20,7 @@ Conteúdo (receitas, checklist meal prep, fora de casa, plateau) vive em const a
 ## 2. Aba Início (`src/routes/app.index.tsx`)
 
 **Card Planner Semanal** inserido entre "Guias mentais" e "Evolução do peso":
+
 - Botão "Abrir planner" → abre `Dialog` (sheet em mobile) com:
   - Campo: Intenção da semana
   - Grid 7 dias × campos: Treino, Refeições, Água (slider 0-8), Humor (1-5 emoji)

@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { Flame, Sparkles } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,10 +27,7 @@ export function WelcomeModal({ userId, show, onStart }: Props) {
     setSaving(true);
     setOpen(false);
     try {
-      await supabase
-        .from("profiles")
-        .update({ has_seen_welcome: true })
-        .eq("id", userId);
+      await supabase.from("profiles").update({ has_seen_welcome: true }).eq("id", userId);
       qc.invalidateQueries({ queryKey: ["profile", userId] });
     } catch {
       /* silent — flag will retry on next mount */
@@ -66,12 +58,8 @@ export function WelcomeModal({ userId, show, onStart }: Props) {
               <Flame className="h-6 w-6" strokeWidth={2} />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-[0.2em] opacity-80">
-                Método Fênix
-              </div>
-              <div className="font-display text-lg leading-tight">
-                Bem-vindo(a)
-              </div>
+              <div className="text-[10px] uppercase tracking-[0.2em] opacity-80">Método Fênix</div>
+              <div className="font-display text-lg leading-tight">Bem-vindo(a)</div>
             </div>
           </div>
           <Sparkles className="absolute right-5 top-5 h-4 w-4 opacity-70" />
@@ -86,10 +74,12 @@ export function WelcomeModal({ userId, show, onStart }: Props) {
 
           <div className="mt-3 space-y-3 text-sm leading-relaxed text-foreground/85">
             <p>
-              Você deu um passo importante ao chegar até aqui. A partir de hoje, você tem um caminho claro para seguir, no seu ritmo, rumo à sua melhor versão.
+              Você deu um passo importante ao chegar até aqui. A partir de hoje, você tem um caminho
+              claro para seguir, no seu ritmo, rumo à sua melhor versão.
             </p>
             <p>
-              O seu celular agora joga a seu favor. Vamos construir juntos uma rotina que faça sentido para a sua vida.
+              O seu celular agora joga a seu favor. Vamos construir juntos uma rotina que faça
+              sentido para a sua vida.
             </p>
 
             <div className="rounded-xl border border-border bg-card/50 p-4">
@@ -102,7 +92,8 @@ export function WelcomeModal({ userId, show, onStart }: Props) {
                     1
                   </span>
                   <span>
-                    Passe pela aba <strong>Método</strong> e conheça os princípios que vão guiar a sua jornada.
+                    Passe pela aba <strong>Método</strong> e conheça os princípios que vão guiar a
+                    sua jornada.
                   </span>
                 </li>
                 <li className="flex gap-3">
@@ -110,15 +101,14 @@ export function WelcomeModal({ userId, show, onStart }: Props) {
                     2
                   </span>
                   <span>
-                    Volte para a aba <strong>Início</strong> e monte o seu Planner da semana com calma.
+                    Volte para a aba <strong>Início</strong> e monte o seu Planner da semana com
+                    calma.
                   </span>
                 </li>
               </ol>
             </div>
 
-            <p className="text-foreground/80">
-              Estamos com você em cada passo. Vamos juntos.
-            </p>
+            <p className="text-foreground/80">Estamos com você em cada passo. Vamos juntos.</p>
           </div>
 
           <Button

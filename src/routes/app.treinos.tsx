@@ -26,6 +26,8 @@ import {
 import { ExercicioMedia } from "@/components/exercicio-media";
 import { toast } from "sonner";
 import { todayISO } from "@/lib/calories";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const Route = createFileRoute("/app/treinos")({
   component: TreinosPage,
@@ -167,9 +169,10 @@ function PlanoTreinoView({ plano, alunoId }: { plano: PlanoTreinoRow; alunoId: s
           <Skeleton className="h-14 rounded-xl" />
         </>
       ) : exercicios.length === 0 ? (
-        <div className="glass rounded-2xl p-8 text-center text-sm text-muted-foreground">
-          Seu instrutor ainda não adicionou exercícios a este plano.
-        </div>
+        <EmptyState
+          icon={Dumbbell}
+          title="Seu instrutor ainda não adicionou exercícios a este plano."
+        />
       ) : (
         [1, 2, 3, 4, 5, 6, 0].map((dia) => {
           const list = byDay[dia];
@@ -480,17 +483,7 @@ function TreinosAluno() {
   if (loadingPlanos) {
     return (
       <main className="mx-auto max-w-md px-5 pt-8 pb-8">
-        <header className="flex items-center gap-3 mb-5">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-ember grid place-items-center shadow-ember">
-            <Dumbbell className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div>
-            <div className="text-xs uppercase tracking-widest text-muted-foreground">
-              Sua rotina
-            </div>
-            <h1 className="text-2xl">Treinos</h1>
-          </div>
-        </header>
+        <PageHeader icon={Dumbbell} eyebrow="Sua rotina" title="Treinos" className="mb-5" />
         <div className="space-y-3">
           <Skeleton className="h-16 rounded-2xl" />
           <Skeleton className="h-16 rounded-2xl" />
@@ -516,17 +509,12 @@ function TreinosPrescritosAluno({
 }) {
   return (
     <main className="mx-auto max-w-md px-5 pt-8 pb-8">
-      <header className="flex items-center gap-3 mb-6">
-        <div className="h-11 w-11 rounded-2xl bg-gradient-ember grid place-items-center shadow-ember">
-          <Dumbbell className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">
-            Prescrito pelo profissional
-          </div>
-          <h1 className="text-2xl">Treinos</h1>
-        </div>
-      </header>
+      <PageHeader
+        icon={Dumbbell}
+        eyebrow="Prescrito pelo profissional"
+        title="Treinos"
+        className="mb-6"
+      />
       <div className="space-y-6">
         {planosTreino.map((p) => (
           <PlanoTreinoView key={p.id} plano={p} alunoId={alunoId} />
@@ -603,23 +591,14 @@ function TreinosGenericosAluno() {
 
   return (
     <main className="mx-auto max-w-md px-5 pt-8 pb-8">
-      <header className="flex items-center gap-3 mb-5">
-        <div className="h-11 w-11 rounded-2xl bg-gradient-ember grid place-items-center shadow-ember">
-          <Dumbbell className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">Sua rotina</div>
-          <h1 className="text-2xl">Treinos</h1>
-        </div>
-      </header>
+      <PageHeader icon={Dumbbell} eyebrow="Sua rotina" title="Treinos" className="mb-5" />
 
-      <div className="glass rounded-2xl p-6 mb-5 text-center space-y-2 border border-dashed border-border/60">
-        <div className="text-3xl">🏋️</div>
-        <div className="text-sm font-medium">Nenhum treino prescrito ainda</div>
-        <div className="text-xs text-muted-foreground">
-          Assim que seu profissional montar seu treino, ele aparecerá aqui.
-        </div>
-      </div>
+      <EmptyState
+        icon={Dumbbell}
+        title="Nenhum treino prescrito ainda"
+        description="Assim que seu profissional montar seu treino, ele aparecerá aqui."
+        className="mb-5"
+      />
 
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3 px-1">
         Biblioteca de treinos
@@ -660,13 +639,11 @@ function TreinosGenericosAluno() {
             <Skeleton className="h-16 rounded-2xl" />
           </>
         ) : treinos.length === 0 ? (
-          <div className="glass rounded-2xl p-8 text-center space-y-2">
-            <div className="text-3xl">🏗️</div>
-            <div className="text-sm font-medium">
-              Estamos preparando seu plano de treino deste nível.
-            </div>
-            <div className="text-xs text-muted-foreground">Em breve, estará disponível!</div>
-          </div>
+          <EmptyState
+            icon={Dumbbell}
+            title="Estamos preparando seu plano de treino deste nível."
+            description="Em breve, estará disponível!"
+          />
         ) : (
           orderedDays.map((dia) => {
             const list = byDay.get(dia);

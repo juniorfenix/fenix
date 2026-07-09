@@ -35,12 +35,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
 
 const WeightChart = lazy(() => import("@/components/weight-chart"));
 import { WeeklyPlanner } from "@/components/weekly-planner";
 import { WelcomeModal } from "@/components/welcome-modal";
 import { HumorCheckIn } from "@/components/humor-checkin";
+import { RegistrarFotoRefeicao } from "@/components/registrar-foto-refeicao";
 import { todayISO } from "@/lib/calories";
 import { computeStreak } from "@/lib/streak";
 import { ALL_BADGES } from "@/lib/badges";
@@ -88,6 +91,7 @@ function Dashboard() {
 function DashboardProfissional() {
   const { user } = useAuth();
   const userId = user?.id ?? "";
+  const navigate = useNavigate();
 
   const { data: perfil } = useQuery({ ...perfilQuery(userId), enabled: !!userId });
   const { data: alunos = [], isLoading: loadingAlunos } = useQuery({
@@ -126,13 +130,12 @@ function DashboardProfissional() {
 
   return (
     <main className="mx-auto max-w-3xl px-5 pt-8 pb-8 space-y-6">
-      <header>
-        <div className="text-xs uppercase tracking-widest text-muted-foreground">{papel}</div>
-        <h1 className="mt-1 text-3xl">Gestão de alunos</h1>
+      <div>
+        <PageHeader icon={Users} eyebrow={papel} title="Gestão de alunos" />
         <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
           Acompanhe seus alunos, prescreva treinos e organize planos alimentares em um só lugar.
         </p>
-      </header>
+      </div>
 
       <section className="grid grid-cols-3 gap-3">
         <div className="glass rounded-2xl p-4">
@@ -165,20 +168,15 @@ function DashboardProfissional() {
       </section>
 
       {alunos.length === 0 ? (
-        <section className="glass rounded-2xl p-8 text-center">
-          <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-ember grid place-items-center shadow-ember mb-4">
-            <Users className="h-7 w-7 text-primary-foreground" strokeWidth={2} />
-          </div>
-          <h2 className="text-lg font-semibold">Nenhum aluno vinculado ainda</h2>
-          <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
-            Adicione ou vincule alunos para começar a prescrever treinos e cardápios.
-          </p>
-          <Link to="/app/instrutor">
-            <Button className="mt-6 bg-gradient-ember text-primary-foreground shadow-ember">
-              Gerenciar alunos
-            </Button>
-          </Link>
-        </section>
+        <EmptyState
+          icon={Users}
+          title="Nenhum aluno vinculado ainda"
+          description="Adicione ou vincule alunos para começar a prescrever treinos e cardápios."
+          action={{
+            label: "Gerenciar alunos",
+            onClick: () => navigate({ to: "/app/instrutor" }),
+          }}
+        />
       ) : (
         <>
           {avisosNaoLidos.length > 0 && (
@@ -343,7 +341,7 @@ function DashboardAluno() {
       particleCount: 80,
       spread: 70,
       origin: { y: 0.25 },
-      colors: ["#ff7a1a", "#ffb347", "#ffd27a"],
+      colors: ["#0A84FF", "#34C759", "#7CC4FF"],
     });
     setStreakPulse(true);
     setTimeout(() => setStreakPulse(false), 1200);
@@ -534,14 +532,7 @@ function DashboardAluno() {
           </div>
           <div className="relative mx-auto mt-4 h-44 w-44">
             <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-              <circle
-                cx="50"
-                cy="50"
-                r="44"
-                fill="none"
-                stroke="oklch(0.26 0.008 60)"
-                strokeWidth="6"
-              />
+              <circle cx="50" cy="50" r="44" fill="none" stroke="var(--border)" strokeWidth="6" />
               <circle
                 cx="50"
                 cy="50"
@@ -554,8 +545,8 @@ function DashboardAluno() {
               />
               <defs>
                 <linearGradient id="g" x1="0" x2="1">
-                  <stop offset="0%" stopColor="oklch(0.72 0.18 47)" />
-                  <stop offset="100%" stopColor="oklch(0.82 0.15 65)" />
+                  <stop offset="0%" stopColor="var(--primary)" />
+                  <stop offset="100%" stopColor="var(--primary-hover)" />
                 </linearGradient>
               </defs>
             </svg>
@@ -568,6 +559,11 @@ function DashboardAluno() {
             {calGoal - todayCals > 0 ? `Restam ${calGoal - todayCals} kcal` : "Meta atingida"}
           </div>
         </section>
+
+        {/* Photo meal registration (AI) */}
+        <div className="mt-4">
+          <RegistrarFotoRefeicao />
+        </div>
 
         {/* Daily summary */}
         <section className="mt-4 glass rounded-2xl p-5 border-l-2 border-primary">
@@ -692,7 +688,7 @@ function DashboardAluno() {
             <h3 className="text-sm font-medium">Evolução do peso</h3>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-gradient-ember text-primary-foreground h-10 px-4">
+                <Button size="sm" variant="ember" className="h-10 px-4">
                   <Plus className="h-4 w-4 mr-1" /> Registrar
                 </Button>
               </DialogTrigger>
@@ -712,7 +708,8 @@ function DashboardAluno() {
                 <Button
                   onClick={logWeight}
                   disabled={savingWeight}
-                  className="h-12 bg-gradient-ember text-primary-foreground shadow-ember hover:opacity-95 hover:shadow-ember focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-80"
+                  variant="ember"
+                  className="h-12 focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-80"
                 >
                   {savingWeight ? (
                     <>
