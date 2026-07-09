@@ -2,7 +2,7 @@
 // Estratégia: cache-first para assets estáticos, network-only para páginas SSR.
 // O SW não chama skipWaiting() automaticamente — aguarda o usuário aprovar a atualização.
 
-const CACHE_NAME = "fenix-static-v3"; // era v2
+const CACHE_NAME = "fenix-static-v__APP_VERSION__";
 
 const PRECACHE = [
   "/manifest.webmanifest",

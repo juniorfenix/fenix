@@ -1,11 +1,12 @@
 {
   "name": "tanstack_start_ts",
   "private": true,
+  "version": "1.0.0",
   "sideEffects": false,
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "vite build && node scripts/inject-sw-version.mjs",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
