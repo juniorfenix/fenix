@@ -6,9 +6,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { perfilQuery } from "@/lib/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Users } from "lucide-react";
 import { ProtocoloEditor } from "@/components/protocolo-editor";
 import { AlertasTrocas } from "@/components/alertas-trocas";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { MetricChip } from "@/components/ui/metric-chip";
 
 export const Route = createFileRoute("/app/admin/$userId")({
   component: AdminAlunoDetalhe,
@@ -126,28 +129,27 @@ function AdminAlunoDetalhe() {
   };
 
   return (
-    <div className="container max-w-5xl px-4 py-6 space-y-4">
+    <div className="container max-w-5xl px-4 py-6 space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <Link to="/app/admin">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4" /> Voltar
           </Button>
         </Link>
-        <Button onClick={exportFull}>
+        <Button onClick={exportFull} variant="ember">
           <Download className="h-4 w-4" /> Exportar tudo (CSV)
         </Button>
       </div>
 
+      <PageHeader icon={Users} eyebrow="Resumo do aluno" title={profile?.display_name ?? "Aluno"} />
+
       <Card>
-        <CardHeader>
-          <CardTitle>{profile?.display_name ?? "Aluno"}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-          <Info label="Peso atual" value={`${profile?.current_weight ?? "—"} kg`} />
-          <Info label="Meta" value={`${profile?.goal_weight ?? "—"} kg`} />
-          <Info label="Altura" value={`${profile?.height ?? "—"} cm`} />
-          <Info label="Idade" value={`${profile?.age ?? "—"}`} />
-          <Info
+        <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6">
+          <MetricChip label="Peso atual" value={profile?.current_weight ?? "—"} unit="kg" />
+          <MetricChip label="Meta" value={profile?.goal_weight ?? "—"} unit="kg" />
+          <MetricChip label="Altura" value={profile?.height ?? "—"} unit="cm" />
+          <MetricChip label="Idade" value={profile?.age ?? "—"} />
+          <MetricChip
             label="Gênero"
             value={
               profile?.gender === "male"
@@ -157,130 +159,155 @@ function AdminAlunoDetalhe() {
                   : "—"
             }
           />
-          <Info label="Atividade" value={profile?.activity_level ?? "—"} />
-          <Info label="Meta diária" value={`${profile?.daily_calorie_goal ?? "—"} kcal`} />
-          <Info
+          <MetricChip label="Atividade" value={profile?.activity_level ?? "—"} />
+          <MetricChip label="Meta diária" value={profile?.daily_calorie_goal ?? "—"} unit="kcal" />
+          <MetricChip
             label="Objetivo Fênix"
             value={objetivoFenixLabel((profile as any)?.objetivo_fenix) ?? objetivo ?? "—"}
           />
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Respostas do Quiz de Cadastro</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
-          <Info label="Alimento favorito" value={(profile as any)?.alimento_favorito ?? "—"} />
-          <Info
-            label="Não come de jeito nenhum"
-            value={
-              Array.isArray((profile as any)?.alimentos_evitar) &&
-              (profile as any).alimentos_evitar.length
-                ? (profile as any).alimentos_evitar.join(", ")
-                : "—"
-            }
-          />
-          <Info
-            label="Tem restrição médica / lesão"
-            value={
-              (profile as any)?.tem_restricao === true
-                ? "Sim"
-                : (profile as any)?.tem_restricao === false
-                  ? "Não"
+      <div className="space-y-3">
+        <div className="text-xs uppercase tracking-widest text-muted-foreground px-1">
+          Respostas do quiz de onboarding
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Quiz de Cadastro</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
+            <Info label="Alimento favorito" value={(profile as any)?.alimento_favorito ?? "—"} />
+            <Info
+              label="Não come de jeito nenhum"
+              value={
+                Array.isArray((profile as any)?.alimentos_evitar) &&
+                (profile as any).alimentos_evitar.length
+                  ? (profile as any).alimentos_evitar.join(", ")
                   : "—"
-            }
-          />
-          <div className="sm:col-span-2">
-            <div className="text-xs text-muted-foreground">Descrição da restrição</div>
-            <div className="whitespace-pre-wrap font-medium">
-              {(profile as any)?.restricao_descricao || "—"}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Preferências Alimentares</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
-          <Info
-            label="Não pode faltar na mesa"
-            value={prefs?.essenciais?.length ? prefs.essenciais.join(", ") : "—"}
-          />
-          <Info label="Estilo de refeição" value={prefs?.estilo_refeicao ?? "—"} />
-          <Info
-            label="Restrições alimentares"
-            value={prefs?.restricoes?.length ? prefs.restricoes.join(", ") : "—"}
-          />
-          <div className="sm:col-span-2">
-            <div className="text-xs text-muted-foreground">Alimentos que detesta</div>
-            <div className="font-medium">
-              {prefs?.detestados?.length ? prefs.detestados.join(", ") : "—"}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <ProtocoloEditor userId={userId} />
-
-      <AlertasTrocas userId={userId} limit={50} />
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Histórico de Peso ({weights.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="max-h-80 overflow-auto">
-          <ul className="text-sm space-y-1">
-            {weights.map((w, i) => (
-              <li key={i} className="flex justify-between border-b border-border/40 py-1">
-                <span className="text-muted-foreground">{w.logged_date}</span>
-                <span className="font-medium">{Number(w.weight)} kg</span>
-              </li>
-            ))}
-            {!weights.length && <li className="text-muted-foreground">Sem registros.</li>}
-          </ul>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Reflexões do Diário ({diario.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="max-h-96 overflow-auto space-y-3">
-          {diario.map((d, i) => (
-            <div key={i} className="border-l-2 border-primary/40 pl-3">
-              <div className="text-xs text-muted-foreground">
-                {d.registrado_em} {d.humor ? `· ${d.humor}` : ""}
+              }
+            />
+            <Info
+              label="Tem restrição médica / lesão"
+              value={
+                (profile as any)?.tem_restricao === true
+                  ? "Sim"
+                  : (profile as any)?.tem_restricao === false
+                    ? "Não"
+                    : "—"
+              }
+            />
+            <div className="sm:col-span-2">
+              <div className="text-xs text-muted-foreground">Descrição da restrição</div>
+              <div className="whitespace-pre-wrap font-medium">
+                {(profile as any)?.restricao_descricao || "—"}
               </div>
-              <div className="text-sm font-medium">{d.pergunta}</div>
-              <div className="text-sm">{d.resposta}</div>
             </div>
-          ))}
-          {!diario.length && <p className="text-sm text-muted-foreground">Sem reflexões.</p>}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Diário Alimentar ({alimentar.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="max-h-96 overflow-auto">
-          <ul className="text-sm divide-y divide-border/40">
-            {alimentar.map((m, i) => (
-              <li key={i} className="py-1.5 flex justify-between gap-2">
-                <span>
-                  <span className="text-muted-foreground">{m.data}</span> ·{" "}
-                  <span className="capitalize">{m.refeicao}</span> · {m.nome}
-                </span>
-                <span className="font-medium">{m.calorias} kcal</span>
-              </li>
-            ))}
-            {!alimentar.length && <li className="text-muted-foreground">Sem registros.</li>}
-          </ul>
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Preferências Alimentares</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
+            <Info
+              label="Não pode faltar na mesa"
+              value={prefs?.essenciais?.length ? prefs.essenciais.join(", ") : "—"}
+            />
+            <Info label="Estilo de refeição" value={prefs?.estilo_refeicao ?? "—"} />
+            <Info
+              label="Restrições alimentares"
+              value={prefs?.restricoes?.length ? prefs.restricoes.join(", ") : "—"}
+            />
+            <div className="sm:col-span-2">
+              <div className="text-xs text-muted-foreground">Alimentos que detesta</div>
+              <div className="font-medium">
+                {prefs?.detestados?.length ? prefs.detestados.join(", ") : "—"}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="space-y-3">
+        <div className="text-xs uppercase tracking-widest text-muted-foreground px-1">
+          Protocolo prescrito
+        </div>
+        <ProtocoloEditor userId={userId} />
+        <AlertasTrocas userId={userId} limit={50} />
+      </div>
+
+      <div className="space-y-3">
+        <div className="text-xs uppercase tracking-widest text-muted-foreground px-1">
+          Histórico de peso, diário e alimentação
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Histórico de Peso ({weights.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="max-h-80 overflow-auto">
+            {weights.length === 0 ? (
+              <EmptyState title="Sem registros de peso ainda." className="border-none p-0" />
+            ) : (
+              <ul className="text-sm space-y-1">
+                {weights.map((w, i) => (
+                  <li key={i} className="flex justify-between border-b border-border/40 py-1">
+                    <span className="text-muted-foreground">{w.logged_date}</span>
+                    <span className="font-medium">{Number(w.weight)} kg</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Reflexões do Diário ({diario.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="max-h-96 overflow-auto space-y-3">
+            {diario.length === 0 ? (
+              <EmptyState title="Sem reflexões ainda." className="border-none p-0" />
+            ) : (
+              diario.map((d, i) => (
+                <div key={i} className="border-l-2 border-primary/40 pl-3">
+                  <div className="text-xs text-muted-foreground">
+                    {d.registrado_em} {d.humor ? `· ${d.humor}` : ""}
+                  </div>
+                  <div className="text-sm font-medium">{d.pergunta}</div>
+                  <div className="text-sm">{d.resposta}</div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Diário Alimentar ({alimentar.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="max-h-96 overflow-auto">
+            {alimentar.length === 0 ? (
+              <EmptyState title="Sem registros alimentares ainda." className="border-none p-0" />
+            ) : (
+              <ul className="text-sm divide-y divide-border/40">
+                {alimentar.map((m, i) => (
+                  <li key={i} className="py-1.5 flex justify-between gap-2">
+                    <span>
+                      <span className="text-muted-foreground">{m.data}</span> ·{" "}
+                      <span className="capitalize">{m.refeicao}</span> · {m.nome}
+                    </span>
+                    <span className="font-medium">{m.calorias} kcal</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

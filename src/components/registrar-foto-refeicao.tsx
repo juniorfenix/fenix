@@ -326,7 +326,7 @@ function FlowResult({
       <div className="relative rounded-xl overflow-hidden border border-border/30">
         <img src={previewUrl} alt="Refeição analisada" className="w-full h-36 object-cover" />
         <div className="absolute top-2 right-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/90 text-white text-[11px] px-2 py-1 font-medium">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--success)] text-white text-[11px] px-2 py-1 font-medium">
             <CheckCircle2 className="h-3 w-3" />
             Análise pronta
           </span>

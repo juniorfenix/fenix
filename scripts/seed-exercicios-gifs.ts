@@ -23,7 +23,7 @@ const SUPABASE_KEY =
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error(
     "❌ Variáveis de ambiente não encontradas.\n" +
-    "   Rode com: node --env-file=.env --import tsx scripts/seed-exercicios-gifs.ts",
+      "   Rode com: node --env-file=.env --import tsx scripts/seed-exercicios-gifs.ts",
   );
   process.exit(1);
 }
@@ -82,7 +82,7 @@ const MAPA: Record<string, string> = {
   "Tríceps testa com barra": "barbell skullcrusher",
   "Extensão de tríceps acima da cabeça": "overhead tricep extension",
   // CORE
-  "Prancha": "plank",
+  Prancha: "plank",
   "Abdominal crunch": "crunch",
   "Abdominal bicicleta": "bicycle crunch",
   "Elevação de pernas suspenso": "hanging leg raise",
@@ -205,9 +205,7 @@ async function main() {
   }
 
   // 2. Busca exercícios do Supabase
-  const { data: dbExercicios, error: dbErr } = await supabase
-    .from("exercicios")
-    .select("id, nome");
+  const { data: dbExercicios, error: dbErr } = await supabase.from("exercicios").select("id, nome");
   if (dbErr) throw new Error(`Supabase: ${dbErr.message}`);
 
   // 3. Match e update

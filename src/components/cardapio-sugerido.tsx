@@ -22,9 +22,19 @@ type CardapioRow = {
 type Objetivo = "perda" | "ganho" | "reeducacao";
 
 const ACCENT: Record<Objetivo, { text: string; border: string; bg: string; label: string }> = {
-  perda: { text: "text-primary", border: "border-primary/40", bg: "bg-primary/10", label: "Déficit" },
+  perda: {
+    text: "text-primary",
+    border: "border-primary/40",
+    bg: "bg-primary/10",
+    label: "Déficit",
+  },
   ganho: { text: "text-accent", border: "border-accent/30", bg: "bg-accent/10", label: "Ganho" },
-  reeducacao: { text: "text-primary", border: "border-primary/30", bg: "bg-primary/10", label: "Equilíbrio" },
+  reeducacao: {
+    text: "text-primary",
+    border: "border-primary/30",
+    bg: "bg-primary/10",
+    label: "Equilíbrio",
+  },
 };
 
 export function CardapioSugerido({
@@ -44,7 +54,9 @@ export function CardapioSugerido({
     queryFn: async (): Promise<CardapioRow[]> => {
       const { data, error } = await supabase
         .from("cardapios")
-        .select("id,refeicao,horario,opcao_numero,opcao_nome,calorias,proteinas,carboidratos,gorduras,descricao,ordem")
+        .select(
+          "id,refeicao,horario,opcao_numero,opcao_nome,calorias,proteinas,carboidratos,gorduras,descricao,ordem",
+        )
         .eq("objetivo", objetivo)
         .eq("genero", genero!)
         .order("ordem", { ascending: true })
@@ -55,10 +67,18 @@ export function CardapioSugerido({
   });
 
   const grupos = useMemo(() => {
-    const map = new Map<string, { refeicao: string; horario: string | null; ordem: number; opcoes: CardapioRow[] }>();
+    const map = new Map<
+      string,
+      { refeicao: string; horario: string | null; ordem: number; opcoes: CardapioRow[] }
+    >();
     for (const r of rows) {
       const key = `${r.ordem}-${r.refeicao}`;
-      const g = map.get(key) ?? { refeicao: r.refeicao, horario: r.horario, ordem: r.ordem, opcoes: [] };
+      const g = map.get(key) ?? {
+        refeicao: r.refeicao,
+        horario: r.horario,
+        ordem: r.ordem,
+        opcoes: [],
+      };
       g.opcoes.push(r);
       map.set(key, g);
     }
@@ -135,7 +155,9 @@ export function CardapioSugerido({
                     className="w-full text-left rounded-xl bg-background/30 border border-border/30 p-3 hover:border-primary/50 hover:bg-background/50 transition-colors group"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`text-[10px] uppercase tracking-wide font-semibold ${accent.text}`}>
+                      <span
+                        className={`text-[10px] uppercase tracking-wide font-semibold ${accent.text}`}
+                      >
                         {o.opcao_nome}
                       </span>
                       <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
@@ -149,7 +171,9 @@ export function CardapioSugerido({
                     </div>
                     <p className="text-sm leading-snug">{o.descricao}</p>
                     {onSelect && (
-                      <div className={`flex items-center gap-1 mt-2 text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity ${accent.text}`}>
+                      <div
+                        className={`flex items-center gap-1 mt-2 text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity ${accent.text}`}
+                      >
                         <Plus className="h-3 w-3" /> Registrar esta opção
                       </div>
                     )}

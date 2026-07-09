@@ -83,7 +83,13 @@ export function ProtocoloEditor({ userId }: Props) {
             meta_gorduras: String(protocolo.meta_gorduras ?? 0),
             observacoes: protocolo.observacoes ?? "",
           }
-        : { meta_kcal: "", meta_proteinas: "", meta_carboidratos: "", meta_gorduras: "", observacoes: "" },
+        : {
+            meta_kcal: "",
+            meta_proteinas: "",
+            meta_carboidratos: "",
+            meta_gorduras: "",
+            observacoes: "",
+          },
     [protocolo],
   );
   const form = metas ?? formInit;
@@ -169,7 +175,9 @@ export function ProtocoloEditor({ userId }: Props) {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6 text-sm text-muted-foreground">Carregando protocolo…</CardContent>
+        <CardContent className="p-6 text-sm text-muted-foreground">
+          Carregando protocolo…
+        </CardContent>
       </Card>
     );
   }
@@ -189,10 +197,26 @@ export function ProtocoloEditor({ userId }: Props) {
       <CardContent className="space-y-5">
         {/* Metas */}
         <div className="grid gap-3 sm:grid-cols-4">
-          <Field label="Kcal" value={form.meta_kcal} onChange={(v) => setMetas({ ...form, meta_kcal: v })} />
-          <Field label="Proteínas (g)" value={form.meta_proteinas} onChange={(v) => setMetas({ ...form, meta_proteinas: v })} />
-          <Field label="Carbo (g)" value={form.meta_carboidratos} onChange={(v) => setMetas({ ...form, meta_carboidratos: v })} />
-          <Field label="Gord. (g)" value={form.meta_gorduras} onChange={(v) => setMetas({ ...form, meta_gorduras: v })} />
+          <Field
+            label="Kcal"
+            value={form.meta_kcal}
+            onChange={(v) => setMetas({ ...form, meta_kcal: v })}
+          />
+          <Field
+            label="Proteínas (g)"
+            value={form.meta_proteinas}
+            onChange={(v) => setMetas({ ...form, meta_proteinas: v })}
+          />
+          <Field
+            label="Carbo (g)"
+            value={form.meta_carboidratos}
+            onChange={(v) => setMetas({ ...form, meta_carboidratos: v })}
+          />
+          <Field
+            label="Gord. (g)"
+            value={form.meta_gorduras}
+            onChange={(v) => setMetas({ ...form, meta_gorduras: v })}
+          />
         </div>
         <div>
           <div className="mb-1 text-xs text-muted-foreground">Observações</div>
@@ -203,11 +227,7 @@ export function ProtocoloEditor({ userId }: Props) {
             className="min-h-[60px]"
           />
         </div>
-        <Button
-          onClick={() => saveMetas.mutate()}
-          disabled={saveMetas.isPending}
-          className="bg-gradient-ember text-primary-foreground"
-        >
+        <Button onClick={() => saveMetas.mutate()} disabled={saveMetas.isPending} variant="ember">
           <Save className="h-4 w-4" /> {saveMetas.isPending ? "Salvando…" : "Salvar metas"}
         </Button>
 
@@ -219,9 +239,7 @@ export function ProtocoloEditor({ userId }: Props) {
               refeicao={m}
               itens={itensPorRefeicao[m] ?? []}
               alimentos={alimentos}
-              onAdd={(alimento_id, gramas) =>
-                addItem.mutate({ refeicao: m, alimento_id, gramas })
-              }
+              onAdd={(alimento_id, gramas) => addItem.mutate({ refeicao: m, alimento_id, gramas })}
               onDelete={(id) => delItem.mutate(id)}
             />
           ))}
@@ -296,7 +314,12 @@ function RefeicaoBloco({
         <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
           {MEAL_LABELS[refeicao]}
         </div>
-        <Button size="sm" variant="ghost" onClick={() => setAdding((s) => !s)} className="h-7 gap-1 text-xs">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setAdding((s) => !s)}
+          className="h-7 gap-1 text-xs"
+        >
           <Plus className="h-3 w-3" /> Adicionar
         </Button>
       </div>

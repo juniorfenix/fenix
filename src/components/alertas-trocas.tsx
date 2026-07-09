@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ArrowRightLeft, AlertTriangle } from "lucide-react";
 
 type Row = {
@@ -66,17 +68,18 @@ export function AlertasTrocas({ userId, limit = 20 }: Props) {
         {isLoading ? (
           <div className="p-4 text-sm text-muted-foreground">Carregando…</div>
         ) : data.length === 0 ? (
-          <div className="p-4 text-sm text-muted-foreground">
-            Nenhuma troca registrada {userId ? "para este aluno" : "ainda"}.
-          </div>
+          <EmptyState
+            icon={ArrowRightLeft}
+            title={`Nenhuma troca registrada ${userId ? "para este aluno" : "ainda"}.`}
+            className="border-none"
+          />
         ) : (
           <ul className="divide-y divide-border/40 max-h-96 overflow-auto">
             {data.map((r) => {
               const dp = r.delta_proteinas_pct ?? 0;
               const dc = r.delta_carboidratos_pct ?? 0;
               const dg = r.delta_gorduras_pct ?? 0;
-              const fora =
-                Math.abs(dp) > 10 || Math.abs(dc) > 10 || Math.abs(dg) > 10;
+              const fora = Math.abs(dp) > 10 || Math.abs(dc) > 10 || Math.abs(dg) > 10;
               return (
                 <li key={r.id} className="p-3 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -92,9 +95,9 @@ export function AlertasTrocas({ userId, limit = 20 }: Props) {
                       <span className="ml-1 text-muted-foreground">({r.gramas_substituto} g)</span>
                     </div>
                     {fora && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] text-amber-400">
+                      <Badge variant="warning" className="gap-1">
                         <AlertTriangle className="h-3 w-3" /> Fora da margem
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <div className="mt-1 text-[11px] text-muted-foreground">

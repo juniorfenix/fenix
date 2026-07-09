@@ -2,13 +2,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { profileQuery, badgesQuery, weightsQuery, perfilQuery } from "@/lib/queries";
-import { LogOut, Award, Flame, Lock, Pencil, Scale, Briefcase } from "lucide-react";
+import { LogOut, Award, Flame, Lock, Pencil, Scale, Briefcase, Mail } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MetricChip } from "@/components/ui/metric-chip";
 import {
   Select,
   SelectContent,
@@ -169,6 +170,7 @@ function ProfileProfissional() {
       {/* Conta */}
       <section className="mt-8">
         <div className="flex items-center gap-2 mb-3">
+          <Mail className="h-4 w-4 text-primary" />
           <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Conta</h2>
         </div>
         <div className="glass rounded-2xl px-4 py-3">
@@ -401,9 +403,12 @@ function ProfileAluno() {
       </header>
 
       <section className="mt-8 grid grid-cols-3 gap-2">
-        <Stat label="Atual" value={profile?.current_weight ? `${profile.current_weight}kg` : "—"} />
-        <Stat label="Meta" value={profile?.goal_weight ? `${profile.goal_weight}kg` : "—"} />
-        <Stat label="Kcal/dia" value={profile?.daily_calorie_goal ?? "—"} />
+        <MetricChip
+          label="Atual"
+          value={profile?.current_weight ? `${profile.current_weight}kg` : "—"}
+        />
+        <MetricChip label="Meta" value={profile?.goal_weight ? `${profile.goal_weight}kg` : "—"} />
+        <MetricChip label="Kcal/dia" value={profile?.daily_calorie_goal ?? "—"} />
       </section>
 
       {/* Histórico de Peso */}
@@ -575,16 +580,5 @@ function ProfileAluno() {
         </DialogContent>
       </Dialog>
     </main>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="glass rounded-2xl p-4 text-center">
-      <div className="font-display text-xl">{value}</div>
-      <div className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">
-        {label}
-      </div>
-    </div>
   );
 }

@@ -33,6 +33,9 @@ import { toast } from "sonner";
 import { mapGenero } from "@/lib/profile";
 import { todayISO } from "@/lib/calories";
 import { RegistrarFotoRefeicao } from "@/components/registrar-foto-refeicao";
+import { PageHeader } from "@/components/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { MetricChip } from "@/components/ui/metric-chip";
 
 // ─── Instructor prescribed meal plan card ────────────────────────────────────
 
@@ -92,29 +95,15 @@ function PlanoAlimentarCard({ plano, alunoId }: { plano: PlanoAlimentarRow; alun
 
       {(plano.meta_kcal || plano.meta_proteinas_g) && (
         <div className="grid grid-cols-4 gap-2">
-          {plano.meta_kcal && (
-            <div className="rounded-xl bg-primary/5 border border-primary/20 p-2.5 text-center">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">kcal</div>
-              <div className="text-sm font-bold text-primary">{plano.meta_kcal}</div>
-            </div>
-          )}
+          {plano.meta_kcal && <MetricChip label="kcal" value={plano.meta_kcal} />}
           {plano.meta_proteinas_g && (
-            <div className="rounded-xl bg-primary/5 border border-primary/20 p-2.5 text-center">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">prot</div>
-              <div className="text-sm font-bold text-primary">{plano.meta_proteinas_g}g</div>
-            </div>
+            <MetricChip label="prot" value={plano.meta_proteinas_g} unit="g" />
           )}
           {plano.meta_carboidratos_g && (
-            <div className="rounded-xl bg-primary/5 border border-primary/20 p-2.5 text-center">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">carb</div>
-              <div className="text-sm font-bold text-primary">{plano.meta_carboidratos_g}g</div>
-            </div>
+            <MetricChip label="carb" value={plano.meta_carboidratos_g} unit="g" />
           )}
           {plano.meta_gorduras_g && (
-            <div className="rounded-xl bg-primary/5 border border-primary/20 p-2.5 text-center">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">gord</div>
-              <div className="text-sm font-bold text-primary">{plano.meta_gorduras_g}g</div>
-            </div>
+            <MetricChip label="gord" value={plano.meta_gorduras_g} unit="g" />
           )}
         </div>
       )}
@@ -291,7 +280,7 @@ function AlimentacaoAluno() {
                 particleCount: 60,
                 spread: 70,
                 origin: { y: 0.3 },
-                colors: ["#38bdf8", "#0ea5e9", "#7dd3fc"],
+                colors: ["#0A84FF", "#006EDC", "#EAF4FF"],
               });
             })
             .catch(() => {});
@@ -412,15 +401,7 @@ function AlimentacaoAluno() {
 
   return (
     <main className="mx-auto max-w-md px-5 pt-8 pb-8 space-y-5">
-      <header className="flex items-center gap-3">
-        <div className="h-11 w-11 rounded-2xl bg-gradient-ember grid place-items-center shadow-ember">
-          <Utensils className="h-5 w-5 text-primary-foreground" />
-        </div>
-        <div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">Hoje</div>
-          <h1 className="text-2xl">Minha Alimentação</h1>
-        </div>
-      </header>
+      <PageHeader icon={Utensils} eyebrow="Hoje" title="Minha Alimentação" />
 
       {/* Plano alimentar prescrito pelo instrutor */}
       {!loadingPlanosAlimentares && planosAlimentares.length > 0 ? (
@@ -433,13 +414,11 @@ function AlimentacaoAluno() {
           ))}
         </div>
       ) : !loadingPlanosAlimentares ? (
-        <div className="glass rounded-2xl p-6 text-center space-y-2 border border-dashed border-border/60">
-          <div className="text-3xl">🥗</div>
-          <div className="text-sm font-medium">Nenhum plano alimentar prescrito ainda</div>
-          <div className="text-xs text-muted-foreground">
-            Assim que seu profissional montar sua dieta, ela aparecerá aqui.
-          </div>
-        </div>
+        <EmptyState
+          icon={Utensils}
+          title="Nenhum plano alimentar prescrito ainda"
+          description="Assim que seu profissional montar sua dieta, ela aparecerá aqui."
+        />
       ) : null}
 
       {/* Protocolo prescrito pelo admin (se houver) */}
@@ -449,7 +428,7 @@ function AlimentacaoAluno() {
       <section className="glass rounded-2xl p-4 border border-border/40">
         <div className="flex items-center justify-between mb-1 gap-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <Droplet className="h-5 w-5 text-sky-500/80" />
+            <Droplet className="h-5 w-5 text-primary" />
             <span className="font-semibold">Hidratação</span>
           </div>
           <span className="text-sm text-muted-foreground">
@@ -464,9 +443,9 @@ function AlimentacaoAluno() {
         </p>
         {metaCopos > 16 ? (
           <div className="space-y-2">
-            <div className="relative h-4 rounded-full bg-background/40 border border-sky-500/20 overflow-hidden">
+            <div className="relative h-4 rounded-full bg-background/40 border border-primary/20 overflow-hidden">
               <div
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-sky-600/60 to-sky-500/70 transition-all"
+                className="absolute inset-y-0 left-0 bg-primary transition-all"
                 style={{ width: `${Math.min(100, (copos / metaCopos) * 100)}%` }}
               />
             </div>
@@ -475,7 +454,7 @@ function AlimentacaoAluno() {
                 type="button"
                 onClick={() => setCoposMut.mutate(copos - 1)}
                 disabled={copos <= 0 || setCoposMut.isPending}
-                className="px-3 py-1.5 rounded-lg border border-border/60 bg-background/40 text-sm hover:border-sky-500/30 disabled:opacity-40"
+                className="px-3 py-1.5 rounded-lg border border-border/60 bg-background/40 text-sm hover:border-primary/30 disabled:opacity-40"
               >
                 − 250ml
               </button>
@@ -486,7 +465,7 @@ function AlimentacaoAluno() {
                 type="button"
                 onClick={() => setCoposMut.mutate(copos + 1)}
                 disabled={copos >= metaCopos || setCoposMut.isPending}
-                className="px-3 py-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 text-sky-300/90 text-sm hover:bg-sky-500/20 disabled:opacity-40"
+                className="px-3 py-1.5 rounded-lg border border-primary/40 bg-[var(--primary-soft)] text-primary text-sm hover:bg-primary/20 disabled:opacity-40"
               >
                 + 250ml
               </button>
@@ -508,8 +487,8 @@ function AlimentacaoAluno() {
                   aria-label={`Marcar copo ${i + 1}`}
                   className={`aspect-square rounded-lg border flex items-center justify-center transition-colors ${
                     active
-                      ? "bg-sky-500/15 border-sky-500/40 text-sky-300/90"
-                      : "bg-background/40 border-border/40 text-muted-foreground hover:border-sky-500/30"
+                      ? "bg-[var(--primary-soft)] border-primary/40 text-primary"
+                      : "bg-background/40 border-border/40 text-muted-foreground hover:border-primary/30"
                   }`}
                 >
                   <Droplet className="h-4 w-4" fill={active ? "currentColor" : "none"} />
@@ -530,23 +509,24 @@ function AlimentacaoAluno() {
                 label: "Perda",
                 Icon: TrendingDown,
                 activeCls:
-                  "bg-gradient-to-br from-rose-500 to-red-700 text-white border-rose-400 shadow-[0_0_20px_-4px_rgba(244,63,94,0.6)]",
-                idleCls: "text-rose-300/80 hover:text-rose-200 hover:border-rose-500/50",
+                  "bg-destructive text-destructive-foreground border-transparent shadow-[var(--shadow-md)]",
+                idleCls: "text-destructive/80 hover:text-destructive hover:border-destructive/40",
               },
               {
                 key: "reeducacao",
                 label: "Reeducação",
                 Icon: Leaf,
                 activeCls:
-                  "bg-gradient-to-br from-emerald-500 to-green-700 text-white border-emerald-400 shadow-[0_0_20px_-4px_rgba(16,185,129,0.6)]",
-                idleCls: "text-emerald-300/80 hover:text-emerald-200 hover:border-emerald-500/50",
+                  "bg-[var(--success)] text-white border-transparent shadow-[var(--shadow-md)]",
+                idleCls: "text-[var(--success)] hover:border-[var(--success)]/40",
               },
               {
                 key: "ganho",
                 label: "Ganho",
                 Icon: TrendingUp,
-                activeCls: "bg-gradient-ember text-primary-foreground border-primary shadow-ember",
-                idleCls: "text-orange-300/80 hover:text-orange-200 hover:border-primary/50",
+                activeCls:
+                  "bg-primary text-primary-foreground border-transparent shadow-[var(--shadow-md)]",
+                idleCls: "text-primary/80 hover:text-primary hover:border-primary/40",
               },
             ] as const
           ).map(({ key, label, Icon, activeCls, idleCls }) => {
@@ -558,7 +538,7 @@ function AlimentacaoAluno() {
                 onClick={() => !active && setObjetivo.mutate(key)}
                 disabled={setObjetivo.isPending}
                 className={`relative overflow-hidden rounded-xl px-2 py-3 flex items-center justify-center gap-1.5 text-xs font-semibold transition-all border ${
-                  active ? `${activeCls} scale-[1.03]` : `bg-[#0f0f0f] border-border/60 ${idleCls}`
+                  active ? `${activeCls} scale-[1.03]` : `bg-card border-border ${idleCls}`
                 }`}
                 aria-pressed={active}
               >
@@ -597,27 +577,25 @@ function AlimentacaoAluno() {
               {metaKcal} <span className="text-sm text-muted-foreground font-normal">kcal</span>
             </div>
           </div>
-          <div className="rounded-xl bg-background/30 border border-border/30 p-3 flex items-center gap-2">
-            <Beef className="h-4 w-4 text-primary" />
-            <div>
-              <div className="text-[11px] text-muted-foreground">Proteínas</div>
-              <div className="text-sm font-semibold">{macros.prot}g</div>
-            </div>
-          </div>
-          <div className="rounded-xl bg-background/30 border border-border/30 p-3 flex items-center gap-2">
-            <Wheat className="h-4 w-4 text-accent" />
-            <div>
-              <div className="text-[11px] text-muted-foreground">Carboidratos</div>
-              <div className="text-sm font-semibold">{macros.carb}g</div>
-            </div>
-          </div>
-          <div className="rounded-xl bg-background/30 border border-border/30 p-3 flex items-center gap-2 col-span-2">
-            <Salad className="h-4 w-4 text-primary/80" />
-            <div>
-              <div className="text-[11px] text-muted-foreground">Gorduras</div>
-              <div className="text-sm font-semibold">{macros.gord}g</div>
-            </div>
-          </div>
+          <MetricChip
+            label="Proteínas"
+            value={macros.prot}
+            unit="g"
+            icon={<Beef className="h-4 w-4 text-primary" />}
+          />
+          <MetricChip
+            label="Carboidratos"
+            value={macros.carb}
+            unit="g"
+            icon={<Wheat className="h-4 w-4 text-accent" />}
+          />
+          <MetricChip
+            label="Gorduras"
+            value={macros.gord}
+            unit="g"
+            icon={<Salad className="h-4 w-4 text-primary/80" />}
+            className="col-span-2"
+          />
         </div>
         {!profile?.daily_calorie_goal && (
           <p className="text-[11px] text-muted-foreground mt-3 italic">

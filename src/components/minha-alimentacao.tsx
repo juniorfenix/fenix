@@ -6,12 +6,30 @@ import { useAuth } from "@/hooks/use-auth";
 import { todayISO } from "@/lib/calories";
 
 import {
-  Coffee, UtensilsCrossed, Apple, Moon, Plus, Pencil, Trash2, Flame,
-  Zap, Dumbbell, Loader2, Search, Check, Sparkles,
+  Coffee,
+  UtensilsCrossed,
+  Apple,
+  Moon,
+  Plus,
+  Pencil,
+  Trash2,
+  Flame,
+  Zap,
+  Dumbbell,
+  Loader2,
+  Search,
+  Check,
+  Sparkles,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -116,7 +134,9 @@ export function MinhaAlimentacao({
     queryFn: async (): Promise<DiarioRow[]> => {
       const { data, error } = await supabase
         .from("diario_alimentar")
-        .select("id,refeicao,nome,calorias,proteinas,carboidratos,gorduras,observacoes,data,created_at")
+        .select(
+          "id,refeicao,nome,calorias,proteinas,carboidratos,gorduras,observacoes,data,created_at",
+        )
         .eq("user_id", userId)
         .eq("data", today)
         .order("created_at", { ascending: true });
@@ -150,7 +170,9 @@ export function MinhaAlimentacao({
     queryFn: async (): Promise<DiarioRow[]> => {
       const { data, error } = await supabase
         .from("diario_alimentar")
-        .select("id,refeicao,nome,calorias,proteinas,carboidratos,gorduras,observacoes,data,created_at")
+        .select(
+          "id,refeicao,nome,calorias,proteinas,carboidratos,gorduras,observacoes,data,created_at",
+        )
         .eq("user_id", userId)
         .gte("data", isoDaysAgo(30))
         .order("created_at", { ascending: false })
@@ -160,15 +182,19 @@ export function MinhaAlimentacao({
     },
   });
 
-  const totals = useMemo(() => registros.reduce(
-    (acc, r) => ({
-      kcal: acc.kcal + r.calorias,
-      prot: acc.prot + r.proteinas,
-      carb: acc.carb + r.carboidratos,
-      gord: acc.gord + r.gorduras,
-    }),
-    { kcal: 0, prot: 0, carb: 0, gord: 0 },
-  ), [registros]);
+  const totals = useMemo(
+    () =>
+      registros.reduce(
+        (acc, r) => ({
+          kcal: acc.kcal + r.calorias,
+          prot: acc.prot + r.proteinas,
+          carb: acc.carb + r.carboidratos,
+          gord: acc.gord + r.gorduras,
+        }),
+        { kcal: 0, prot: 0, carb: 0, gord: 0 },
+      ),
+    [registros],
+  );
 
   const progressoReal = Math.round((totals.kcal / metaKcal) * 100);
   const progresso = Math.min(100, progressoReal);
@@ -206,18 +232,38 @@ export function MinhaAlimentacao({
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<DiarioRow | null>(null);
   const [refeicao, setRefeicao] = useState<RefeicaoKey>("Café");
-  const [form, setForm] = useState({ nome: "", calorias: "", proteinas: "", carboidratos: "", gorduras: "", observacoes: "" });
+  const [form, setForm] = useState({
+    nome: "",
+    calorias: "",
+    proteinas: "",
+    carboidratos: "",
+    gorduras: "",
+    observacoes: "",
+  });
   const [search, setSearch] = useState("");
 
   function openNew(r: RefeicaoKey) {
     setEditing(null);
     setRefeicao(r);
-    setForm({ nome: "", calorias: "", proteinas: "", carboidratos: "", gorduras: "", observacoes: "" });
+    setForm({
+      nome: "",
+      calorias: "",
+      proteinas: "",
+      carboidratos: "",
+      gorduras: "",
+      observacoes: "",
+    });
     setSearch("");
     setOpen(true);
   }
 
-  function fillFromItem(a: { nome: string; calorias: number; proteinas: number; carboidratos: number; gorduras: number }) {
+  function fillFromItem(a: {
+    nome: string;
+    calorias: number;
+    proteinas: number;
+    carboidratos: number;
+    gorduras: number;
+  }) {
     setForm({
       nome: a.nome,
       calorias: String(a.calorias),
@@ -232,7 +278,9 @@ export function MinhaAlimentacao({
   useEffect(() => {
     if (!prefill) return;
     setEditing(null);
-    const r = (prefill.refeicao && REFEICOES.find((x) => x.key === prefill.refeicao)?.key) || defaultRefeicaoForNow();
+    const r =
+      (prefill.refeicao && REFEICOES.find((x) => x.key === prefill.refeicao)?.key) ||
+      defaultRefeicaoForNow();
     setRefeicao(r as RefeicaoKey);
     fillFromItem(prefill);
     setSearch("");
@@ -271,7 +319,10 @@ export function MinhaAlimentacao({
         observacoes: parsed.observacoes || null,
       };
       if (editing) {
-        const { error } = await supabase.from("diario_alimentar").update(payload).eq("id", editing.id);
+        const { error } = await supabase
+          .from("diario_alimentar")
+          .update(payload)
+          .eq("id", editing.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("diario_alimentar").insert(payload);
@@ -280,7 +331,11 @@ export function MinhaAlimentacao({
     },
     onMutate: async () => {
       // Validate before touching cache so we error early
-      try { formSchema.parse(form); } catch (e) { throw e; }
+      try {
+        formSchema.parse(form);
+      } catch (e) {
+        throw e;
+      }
       await queryClient.cancelQueries({ queryKey });
       const prev = queryClient.getQueryData<DiarioRow[]>([...queryKey]) ?? [];
       const optimistic: DiarioRow = {
@@ -299,13 +354,16 @@ export function MinhaAlimentacao({
         ? prev.map((r) => (r.id === editing.id ? { ...r, ...optimistic, id: editing.id } : r))
         : [...prev, optimistic];
       queryClient.setQueryData<DiarioRow[]>([...queryKey], next);
-      
+
       setOpen(false);
       return { prev };
     },
     onError: (e: unknown, _v, ctx) => {
       if (ctx?.prev) queryClient.setQueryData([...queryKey], ctx.prev);
-      const msg = e instanceof z.ZodError ? e.issues[0]?.message ?? "Dados inválidos" : (e as Error).message;
+      const msg =
+        e instanceof z.ZodError
+          ? (e.issues[0]?.message ?? "Dados inválidos")
+          : (e as Error).message;
       toast.error(msg);
       setOpen(true); // reopen so user can fix
     },
@@ -357,9 +415,7 @@ export function MinhaAlimentacao({
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
-    return alimentosPadrao
-      .filter((a) => a.nome.toLowerCase().includes(q))
-      .slice(0, 8);
+    return alimentosPadrao.filter((a) => a.nome.toLowerCase().includes(q)).slice(0, 8);
   }, [search, alimentosPadrao]);
 
   const currentSuggestions = suggestionsByMeal[refeicao] ?? [];
@@ -402,7 +458,12 @@ export function MinhaAlimentacao({
       <div className="grid grid-cols-3 gap-2 text-xs">
         <MacroCell label="Proteínas" value={totals.prot} goal={macroGoals?.prot} color="primary" />
         <MacroCell label="Carbos" value={totals.carb} goal={macroGoals?.carb} color="accent" />
-        <MacroCell label="Gorduras" value={totals.gord} goal={macroGoals?.gord} color="primary-soft" />
+        <MacroCell
+          label="Gorduras"
+          value={totals.gord}
+          goal={macroGoals?.gord}
+          color="primary-soft"
+        />
       </div>
 
       {/* Quick add buttons with "has entries" badge */}
@@ -435,7 +496,9 @@ export function MinhaAlimentacao({
 
       {/* History grouped by refeicao */}
       <div className="space-y-2">
-        <div className="text-xs uppercase tracking-wide text-muted-foreground">Registros de hoje</div>
+        <div className="text-xs uppercase tracking-wide text-muted-foreground">
+          Registros de hoje
+        </div>
         {isPending ? (
           <Skeleton className="h-16 rounded-xl" />
         ) : registros.length === 0 ? (
@@ -446,23 +509,38 @@ export function MinhaAlimentacao({
               const items = todayByMeal[r.key] ?? [];
               const kcalGroup = items.reduce((a, b) => a + b.calorias, 0);
               return (
-                <div key={r.key} className="rounded-xl bg-background/20 border border-border/30 p-2.5">
+                <div
+                  key={r.key}
+                  className="rounded-xl bg-background/20 border border-border/30 p-2.5"
+                >
                   <div className="flex items-center justify-between px-1 mb-1.5">
                     <div className="flex items-center gap-1.5">
                       <r.icon className="h-3.5 w-3.5 text-primary" />
-                      <span className="text-[11px] uppercase tracking-wide font-semibold text-primary">{r.key}</span>
+                      <span className="text-[11px] uppercase tracking-wide font-semibold text-primary">
+                        {r.key}
+                      </span>
                     </div>
                     <span className="text-[11px] text-muted-foreground">{kcalGroup} kcal</span>
                   </div>
                   <ul className="space-y-1.5">
                     {items.map((row) => (
-                      <li key={row.id} className="rounded-lg bg-background/40 border border-border/20 p-2.5 flex items-start gap-2">
+                      <li
+                        key={row.id}
+                        className="rounded-lg bg-background/40 border border-border/20 p-2.5 flex items-start gap-2"
+                      >
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium leading-snug truncate">{row.nome}</div>
-                          <div className="text-[11px] text-muted-foreground mt-0.5">
-                            {row.calorias} kcal · P {row.proteinas}g · C {row.carboidratos}g · G {row.gorduras}g
+                          <div className="text-sm font-medium leading-snug truncate">
+                            {row.nome}
                           </div>
-                          {row.observacoes && <div className="text-[11px] text-muted-foreground mt-1 italic">{row.observacoes}</div>}
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                            {row.calorias} kcal · P {row.proteinas}g · C {row.carboidratos}g · G{" "}
+                            {row.gorduras}g
+                          </div>
+                          {row.observacoes && (
+                            <div className="text-[11px] text-muted-foreground mt-1 italic">
+                              {row.observacoes}
+                            </div>
+                          )}
                         </div>
                         <div className="flex gap-1">
                           <button
@@ -521,7 +599,10 @@ export function MinhaAlimentacao({
                         <li key={a.id}>
                           <button
                             type="button"
-                            onClick={() => { fillFromItem(a); setSearch(""); }}
+                            onClick={() => {
+                              fillFromItem(a);
+                              setSearch("");
+                            }}
                             className="w-full text-left px-3 py-2 hover:bg-primary/10 flex items-center gap-2"
                           >
                             <span className="text-base">{a.icone ?? "🍽️"}</span>
@@ -550,7 +631,8 @@ export function MinhaAlimentacao({
                             onClick={() => fillFromItem(s)}
                             className="rounded-full bg-primary/10 border border-primary/30 px-3 py-1 text-xs hover:bg-primary/20 transition"
                           >
-                            {s.nome} <span className="text-muted-foreground">· {s.calorias}kcal</span>
+                            {s.nome}{" "}
+                            <span className="text-muted-foreground">· {s.calorias}kcal</span>
                           </button>
                         ))}
                       </div>
@@ -584,15 +666,36 @@ export function MinhaAlimentacao({
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <Label htmlFor="prot">Prot (g)</Label>
-                  <Input id="prot" type="number" min={0} max={500} value={form.proteinas} onChange={(e) => setForm((f) => ({ ...f, proteinas: e.target.value }))} />
+                  <Input
+                    id="prot"
+                    type="number"
+                    min={0}
+                    max={500}
+                    value={form.proteinas}
+                    onChange={(e) => setForm((f) => ({ ...f, proteinas: e.target.value }))}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="carb">Carb (g)</Label>
-                  <Input id="carb" type="number" min={0} max={1000} value={form.carboidratos} onChange={(e) => setForm((f) => ({ ...f, carboidratos: e.target.value }))} />
+                  <Input
+                    id="carb"
+                    type="number"
+                    min={0}
+                    max={1000}
+                    value={form.carboidratos}
+                    onChange={(e) => setForm((f) => ({ ...f, carboidratos: e.target.value }))}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="gord">Gord (g)</Label>
-                  <Input id="gord" type="number" min={0} max={500} value={form.gorduras} onChange={(e) => setForm((f) => ({ ...f, gorduras: e.target.value }))} />
+                  <Input
+                    id="gord"
+                    type="number"
+                    min={0}
+                    max={500}
+                    value={form.gorduras}
+                    onChange={(e) => setForm((f) => ({ ...f, gorduras: e.target.value }))}
+                  />
                 </div>
               </div>
               <div>
@@ -609,7 +712,11 @@ export function MinhaAlimentacao({
             </fieldset>
 
             <DialogFooter>
-              <Button variant="ghost" onClick={() => setOpen(false)} disabled={saveMutation.isPending}>
+              <Button
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                disabled={saveMutation.isPending}
+              >
                 Cancelar
               </Button>
               <Button
@@ -618,8 +725,20 @@ export function MinhaAlimentacao({
                 className="bg-gradient-ember text-primary-foreground shadow-ember hover:opacity-95 disabled:opacity-80"
               >
                 {saveMutation.isPending ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Salvando…</>
-                ) : editing ? <><Check className="h-4 w-4 mr-2" />Salvar</> : <><Zap className="h-4 w-4 mr-2" />Registrar</>}
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Salvando…
+                  </>
+                ) : editing ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Salvar
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Registrar
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -630,7 +749,10 @@ export function MinhaAlimentacao({
 }
 
 function MacroCell({
-  label, value, goal, color,
+  label,
+  value,
+  goal,
+  color,
 }: {
   label: string;
   value: number;
@@ -638,17 +760,28 @@ function MacroCell({
   color: "primary" | "accent" | "primary-soft";
 }) {
   const pct = goal ? Math.min(100, Math.round((value / goal) * 100)) : 0;
-  const txt = color === "accent" ? "text-accent" : color === "primary-soft" ? "text-primary/80" : "text-primary";
+  const txt =
+    color === "accent"
+      ? "text-accent"
+      : color === "primary-soft"
+        ? "text-primary/80"
+        : "text-primary";
   const bar = color === "accent" ? "bg-accent" : "bg-primary";
   return (
     <div className="rounded-lg bg-background/30 border border-border/30 py-2 px-2.5 text-center">
       <div className={`font-semibold ${txt}`}>
-        {value}<span className="text-muted-foreground font-normal text-[10px]">{goal ? `/${goal}` : ""}g</span>
+        {value}
+        <span className="text-muted-foreground font-normal text-[10px]">
+          {goal ? `/${goal}` : ""}g
+        </span>
       </div>
       <div className="text-muted-foreground">{label}</div>
       {goal ? (
         <div className="mt-1 h-1 rounded-full bg-background/60 overflow-hidden">
-          <div className={`h-full ${bar} transition-all duration-500`} style={{ width: `${pct}%` }} />
+          <div
+            className={`h-full ${bar} transition-all duration-500`}
+            style={{ width: `${pct}%` }}
+          />
         </div>
       ) : null}
     </div>

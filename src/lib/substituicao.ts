@@ -124,7 +124,8 @@ export function encontrarSubstitutos({
     .map<Candidato>((a) => {
       const g = gramasEquivalentes(original, originalGrams, a);
       const delta = deltaPercent(original, originalGrams, a, g);
-      const within10 = Math.abs(delta.p) <= 10 && Math.abs(delta.c) <= 10 && Math.abs(delta.g) <= 10;
+      const within10 =
+        Math.abs(delta.p) <= 10 && Math.abs(delta.c) <= 10 && Math.abs(delta.g) <= 10;
       return { alimento: a, gramas: g, delta, within10pct: within10 };
     })
     .sort((a, b) => {

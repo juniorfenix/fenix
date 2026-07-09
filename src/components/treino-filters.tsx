@@ -13,7 +13,8 @@ type Filters = { nivel: string; genero: string; local: string };
 const STORAGE_KEY = "treino-filters";
 
 function loadFilters(): Filters {
-  if (typeof window === "undefined") return { nivel: "Iniciante I", genero: "Masculino", local: "Academia" };
+  if (typeof window === "undefined")
+    return { nivel: "Iniciante I", genero: "Masculino", local: "Academia" };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as Filters;
@@ -26,11 +27,13 @@ export function TreinoFilters() {
   const diaSemana = new Date().getDay(); // 0=Dom, 1=Seg...
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(filters)); } catch {}
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
+    } catch {}
   }, [filters]);
 
   const { data: treinos = [], isPending } = useQuery(
-    treinosQuery({ ...filters, dia_semana: diaSemana })
+    treinosQuery({ ...filters, dia_semana: diaSemana }),
   );
 
   const Pills = ({
@@ -45,7 +48,9 @@ export function TreinoFilters() {
     onChange: (v: string) => void;
   }) => (
     <div>
-      <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5">{label}</div>
+      <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5">
+        {label}
+      </div>
       <div className="flex flex-wrap gap-1.5">
         {options.map((opt) => {
           const active = value === opt;
@@ -76,9 +81,24 @@ export function TreinoFilters() {
       </div>
 
       <div className="space-y-3">
-        <Pills label="Nível" value={filters.nivel} options={NIVEIS} onChange={(v) => setFilters((f) => ({ ...f, nivel: v }))} />
-        <Pills label="Gênero" value={filters.genero} options={GENEROS} onChange={(v) => setFilters((f) => ({ ...f, genero: v }))} />
-        <Pills label="Local" value={filters.local} options={LOCAIS} onChange={(v) => setFilters((f) => ({ ...f, local: v }))} />
+        <Pills
+          label="Nível"
+          value={filters.nivel}
+          options={NIVEIS}
+          onChange={(v) => setFilters((f) => ({ ...f, nivel: v }))}
+        />
+        <Pills
+          label="Gênero"
+          value={filters.genero}
+          options={GENEROS}
+          onChange={(v) => setFilters((f) => ({ ...f, genero: v }))}
+        />
+        <Pills
+          label="Local"
+          value={filters.local}
+          options={LOCAIS}
+          onChange={(v) => setFilters((f) => ({ ...f, local: v }))}
+        />
       </div>
 
       <div className="mt-4 border-t border-border pt-4">
@@ -95,19 +115,20 @@ export function TreinoFilters() {
         ) : (
           <ul className="space-y-2">
             {treinos.map((t, i) => (
-              <li
-                key={t.id}
-                className="rounded-xl border border-border bg-card/50 p-3"
-              >
+              <li key={t.id} className="rounded-xl border border-border bg-card/50 p-3">
                 <div className="flex items-start gap-3">
                   <div className="h-7 w-7 shrink-0 rounded-md bg-gradient-ember grid place-items-center text-[11px] font-bold text-primary-foreground">
                     {i + 1}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium leading-tight">{t.exercicio}</div>
-                    <div className="text-xs text-primary mt-0.5 font-medium">{t.series_repeticoes}</div>
+                    <div className="text-xs text-primary mt-0.5 font-medium">
+                      {t.series_repeticoes}
+                    </div>
                     {t.observacoes && (
-                      <div className="text-[11px] text-muted-foreground mt-1 leading-snug">{t.observacoes}</div>
+                      <div className="text-[11px] text-muted-foreground mt-1 leading-snug">
+                        {t.observacoes}
+                      </div>
                     )}
                   </div>
                 </div>
